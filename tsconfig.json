@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "es5",
+    "module": "esnext",
+    "strict": true,
+    "declaration": true,
+    "importHelpers": false,
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "baseUrl": "./src",
+    "typeRoots": [
+      "node_modules/@types",
+      "src/types",
+    ],
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "src/*.js"
+  ]
+}

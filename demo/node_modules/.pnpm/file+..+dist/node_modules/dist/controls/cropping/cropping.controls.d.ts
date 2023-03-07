@@ -1,0 +1,60 @@
+import * as fabric from 'fabric';
+export declare const croppingControlSet: {
+    tlS: fabric.Control;
+    trS: fabric.Control;
+    blS: fabric.Control;
+    brS: fabric.Control;
+    cropLeft: fabric.Control;
+    cropRight: fabric.Control;
+    cropTop: fabric.Control;
+    cropBottom: fabric.Control;
+    cropCornerTL: fabric.Control;
+    cropCornerBL: fabric.Control;
+    cropCornerBR: fabric.Control;
+    cropCornerTR: fabric.Control;
+};
+export declare const standardControlSet: {
+    [x: string]: fabric.Control;
+};
+export declare const flipXCropControls: {
+    tlS: fabric.Control;
+    trS: fabric.Control;
+    blS: fabric.Control;
+    brS: fabric.Control;
+    cropLeft: fabric.Control;
+    cropRight: fabric.Control;
+    cropTop: fabric.Control;
+    cropBottom: fabric.Control;
+    cropCornerTL: fabric.Control;
+    cropCornerBL: fabric.Control;
+    cropCornerBR: fabric.Control;
+    cropCornerTR: fabric.Control;
+};
+export declare const flipYCropControls: {
+    tlS: fabric.Control;
+    trS: fabric.Control;
+    blS: fabric.Control;
+    brS: fabric.Control;
+    cropLeft: fabric.Control;
+    cropRight: fabric.Control;
+    cropTop: fabric.Control;
+    cropBottom: fabric.Control;
+    cropCornerTL: fabric.Control;
+    cropCornerBL: fabric.Control;
+    cropCornerBR: fabric.Control;
+    cropCornerTR: fabric.Control;
+};
+export declare const flipXYCropControls: {
+    tlS: fabric.Control;
+    trS: fabric.Control;
+    blS: fabric.Control;
+    brS: fabric.Control;
+    cropLeft: fabric.Control;
+    cropRight: fabric.Control;
+    cropTop: fabric.Control;
+    cropBottom: fabric.Control;
+    cropCornerTL: fabric.Control;
+    cropCornerBL: fabric.Control;
+    cropCornerBR: fabric.Control;
+    cropCornerTR: fabric.Control;
+};

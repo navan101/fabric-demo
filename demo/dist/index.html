@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>#root {
+      display: flex;
+    }
+
+    #root>.fabric {
+      margin: 0px 40px;
+      display: flex;
+    }
+
+    #root>.pdfjs {
+      margin: 0px 40px;
+    }
+
+    .fabric {
+      display: flex;
+      flex-direction: column;
+      width: 40%;
+    }
+
+    .pdfjs {
+      display: flex;
+      flex-direction: column;
+    }</style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  
+  <!-- <script src="https://cdn.jsdelivr.net/gh/fabricjs/fabric.js@vv6-alpha/dist/fabric.js"></script> -->
+</head>
+
+<body>
+  <button id="createClipMask">Create Clipping Mask</button>
+  <button id="createClipText">Create Clipping Text</button>
+  <div id="root">
+    <div class="fabric">
+      <h1>Fabric v6</h1>
+      <canvas id="fabric-canvas" style="border: 1px solid;"></canvas>
+    </div>
+  </div>
+  <div></div>
+  <input type="file" onchange="onFileChange(event)">
+  <div id="pages">
+  </div>
+
+  <script src="/app.c328ef1a.js"></script>
+</body>
+
+</html>
