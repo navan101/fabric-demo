@@ -3644,103 +3644,18 @@ function _toPropertyKey(arg) {
 }
 var BaseConfiguration = /*#__PURE__*/_createClass(function BaseConfiguration() {
   _classCallCheck(this, BaseConfiguration);
-  /**
-   * Browser-specific constant to adjust CanvasRenderingContext2D.shadowBlur value,
-   * which is unitless and not rendered equally across browsers.
-   *
-   * Values that work quite well (as of October 2017) are:
-   * - Chrome: 1.5
-   * - Edge: 1.75
-   * - Firefox: 0.9
-   * - Safari: 0.95
-   *
-   * @since 2.0.0
-   * @type Number
-   * @default 1
-   */
   _defineProperty(this, "browserShadowBlurConstant", 1);
-  /**
-   * Pixel per Inch as a default value set to 96. Can be changed for more realistic conversion.
-   */
   _defineProperty(this, "DPI", 96);
-  /**
-   * Device Pixel Ratio
-   * @see https://developer.apple.com/library/safari/documentation/AudioVideo/Conceptual/HTML-canvas-guide/SettingUptheCanvas/SettingUptheCanvas.html
-   */
   _defineProperty(this, "devicePixelRatio", 1);
-  /**
-   * Pixel limit for cache canvases. 1Mpx , 4Mpx should be fine.
-   * @since 1.7.14
-   * @type Number
-   * @default
-   */
   _defineProperty(this, "perfLimitSizeTotal", 2097152);
-  /**
-   * Pixel limit for cache canvases width or height. IE fixes the maximum at 5000
-   * @since 1.7.14
-   * @type Number
-   * @default
-   */
   _defineProperty(this, "maxCacheSideLimit", 4096);
-  /**
-   * Lowest pixel limit for cache canvases, set at 256PX
-   * @since 1.7.14
-   * @type Number
-   * @default
-   */
   _defineProperty(this, "minCacheSideLimit", 256);
-  /**
-   * When 'true', style information is not retained when copy/pasting text, making
-   * pasted text use destination style.
-   * Defaults to 'false'.
-   * @type Boolean
-   * @default
-   * @deprecated
-   */
   _defineProperty(this, "disableStyleCopyPaste", false);
-  /**
-   * Enable webgl for filtering picture is available
-   * A filtering backend will be initialized, this will both take memory and
-   * time since a default 2048x2048 canvas will be created for the gl context
-   * @since 2.0.0
-   * @type Boolean
-   * @default
-   */
   _defineProperty(this, "enableGLFiltering", true);
-  /**
-   * if webgl is enabled and available, textureSize will determine the size
-   * of the canvas backend
-   *
-   * In order to support old hardware set to `2048` to avoid OOM
-   *
-   * @since 2.0.0
-   * @type Number
-   * @default
-   */
   _defineProperty(this, "textureSize", 4096);
-  /**
-   * Skip performance testing of setupGLContext and force the use of putImageData that seems to be the one that works best on
-   * Chrome + old hardware. if your users are experiencing empty images after filtering you may try to force this to true
-   * this has to be set before instantiating the filtering backend ( before filtering the first image )
-   * @type Boolean
-   * @default false
-   */
   _defineProperty(this, "forceGLPutImageData", false);
-  /**
-   * If disabled boundsOfCurveCache is not used. For apps that make heavy usage of pencil drawing probably disabling it is better
-   * @default true
-   */
   _defineProperty(this, "cachesBoundsOfCurve", true);
-  /**
-   * Map of font files
-   * Map<fontFamily, pathToFile> of font files
-   */
   _defineProperty(this, "fontPaths", {});
-  /**
-   * Defines the number of fraction digits to use when serializing object values.
-   * Used in exporting methods (`toObject`, `toJSON`, `toSVG`)
-   * You can use it to increase/decrease precision of such values like left, top, scaleX, scaleY, etc.
-   */
   _defineProperty(this, "NUM_FRACTION_DIGITS", 4);
 });
 var Configuration = /*#__PURE__*/function (_BaseConfiguration) {
@@ -5197,13 +5112,6 @@ classRegistry.setClass(BlendColor);
 var Canvas2dFilterBackend = /*#__PURE__*/function () {
   function Canvas2dFilterBackend() {
     _classCallCheck(this, Canvas2dFilterBackend);
-    /**
-     * Experimental. This object is a sort of repository of help layers used to avoid
-     * of recreating them during frequent filtering. If you are previewing a filter with
-     * a slider you probably do not want to create help layers every filter step.
-     * in this object there will be appended some canvases, created once, resized sometimes
-     * cleared never. Clearing is left to the developer.
-     **/
     _defineProperty(this, "resources", {});
   }
   /**
@@ -7135,18 +7043,7 @@ var FabricObjectSVGExportMixin = /*#__PURE__*/function () {
 var Cache = /*#__PURE__*/function () {
   function Cache() {
     _classCallCheck(this, Cache);
-    /**
-     * Cache of widths of chars in text rendering.
-     */
     _defineProperty(this, "charWidthsCache", {});
-    /**
-     * This object keeps the results of the boundsOfCurve calculation mapped by the joined arguments necessary to calculate it.
-     * It does speed up calculation, if you parse and add always the same paths, but in case of heavy usage of freedrawing
-     * you do not get any speed benefit and you get a big object in memory.
-     * The object was a private variable before, while now is appended to the lib so that you have access to it and you
-     * can eventually clear it.
-     * It was an internal variable, is accessible since version 2.3.4
-     */
     _defineProperty(this, "boundsOfCurveCache", {});
   }
   /**
@@ -7207,6 +7104,15 @@ var Cache = /*#__PURE__*/function () {
       // this is an internal utility
       return [Math.floor(roughWidth), Math.floor(perfLimitSizeTotal / roughWidth)];
     }
+
+    /**
+     * This object keeps the results of the boundsOfCurve calculation mapped by the joined arguments necessary to calculate it.
+     * It does speed up calculation, if you parse and add always the same paths, but in case of heavy usage of freedrawing
+     * you do not get any speed benefit and you get a big object in memory.
+     * The object was a private variable before, while now is appended to the lib so that you have access to it and you
+     * can eventually clear it.
+     * It was an internal variable, is accessible since version 2.3.4
+     */
   }]);
   return Cache;
 }();
@@ -8042,10 +7948,6 @@ function createCollectionMixin(Base) {
       var _this8;
       _classCallCheck(this, Collection);
       _this8 = _super8.apply(this, arguments);
-      /**
-       * @type {BaseFabricObject[]}
-       * @TODO needs to end up in the constructor too
-       */
       _defineProperty(_assertThisInitialized(_this8), "_objects", []);
       return _this8;
     }
@@ -15921,11 +15823,6 @@ var Image = /*#__PURE__*/function (_FabricObject) {
 }(FabricObject);
 exports.Image = Image;
 _defineProperty(Image, "CSS_CANVAS", 'canvas-img');
-/**
- * List of attribute names to account for when parsing SVG element (used by {@link Image.fromElement})
- * @static
- * @see {@link http://www.w3.org/TR/SVG/struct.html#ImageElement}
- */
 _defineProperty(Image, "ATTRIBUTE_NAMES", [].concat(SHARED_ATTRIBUTES, ['x', 'y', 'width', 'height', 'preserveAspectRatio', 'xlink:href', 'crossOrigin', 'image-rendering']));
 var imageDefaultValues = {
   type: 'image',
@@ -16994,27 +16891,9 @@ function createColorMatrixFilter(key, matrix) {
       var _this37;
       _classCallCheck(this, GeneratedColorMatrix);
       _this37 = _super26.apply(this, arguments);
-      /**
-       * Filter type
-       * @param {String} type
-       * @default
-       */
       _defineProperty(_assertThisInitialized(_this37), "type", key);
-      /**
-       * Colormatrix for the effect
-       * array of 20 floats. Numbers in positions 4, 9, 14, 19 loose meaning
-       * outside the -1, 1 range.
-       * @param {Array} matrix array of 20 numbers.
-       * @default
-       */
       _defineProperty(_assertThisInitialized(_this37), "matrix", matrix);
-      /**
-       * Lock the matrix export for this kind of static, parameter less filters.
-       */
       _defineProperty(_assertThisInitialized(_this37), "mainParameter", undefined);
-      /**
-       * Lock the colormatrix on the color part, skipping alpha
-       */
       _defineProperty(_assertThisInitialized(_this37), "colorsOnly", true);
       return _this37;
     }
@@ -22756,101 +22635,12 @@ var SelectableCanvas = /*#__PURE__*/function (_StaticCanvas) {
     var _this54;
     _classCallCheck(this, SelectableCanvas);
     _this54 = _super42.apply(this, arguments);
-    /**
-     * When true, objects can be transformed by one side (unproportionally)
-     * when dragged on the corners that normally would not do that.
-     * @type Boolean
-     * @default
-     * @since fabric 4.0 // changed name and default value
-     */
-    /**
-     * Indicates which key switches uniform scaling.
-     * values: 'altKey', 'shiftKey', 'ctrlKey'.
-     * If `null` or 'none' or any other string that is not a modifier key
-     * feature is disabled.
-     * totally wrong named. this sounds like `uniform scaling`
-     * if Canvas.uniformScaling is true, pressing this will set it to false
-     * and viceversa.
-     * @since 1.6.2
-     * @type ModifierKey
-     * @default
-     */
-    /**
-     * When true, objects use center point as the origin of scale transformation.
-     * <b>Backwards incompatibility note:</b> This property replaces "centerTransform" (Boolean).
-     * @since 1.3.4
-     * @type Boolean
-     * @default
-     */
-    /**
-     * When true, objects use center point as the origin of rotate transformation.
-     * <b>Backwards incompatibility note:</b> This property replaces "centerTransform" (Boolean).
-     * @since 1.3.4
-     * @type Boolean
-     * @default
-     */
-    /**
-     * Indicates which key enable centered Transform
-     * values: 'altKey', 'shiftKey', 'ctrlKey'.
-     * If `null` or 'none' or any other string that is not a modifier key
-     * feature is disabled feature disabled.
-     * @since 1.6.2
-     * @type ModifierKey
-     * @default
-     */
-    /**
-     * Indicates which key enable alternate action on corner
-     * values: 'altKey', 'shiftKey', 'ctrlKey'.
-     * If `null` or 'none' or any other string that is not a modifier key
-     * feature is disabled feature disabled.
-     * @since 1.6.2
-     * @type ModifierKey
-     * @default
-     */
-    /**
-     * Indicates that canvas is interactive. This property should not be changed.
-     * @type Boolean
-     * @default
-     */
     _defineProperty(_assertThisInitialized(_this54), "interactive", true);
-    /**
-     * Keep track of the subTargets for Mouse Events
-     * @type FabricObject[]
-     */
     _defineProperty(_assertThisInitialized(_this54), "targets", []);
-    /**
-     * hold the list of nested targets hovered
-     * @type FabricObject[]
-     * @private
-     */
     _defineProperty(_assertThisInitialized(_this54), "_hoveredTargets", []);
-    /**
-     * hold the list of objects to render
-     * @type FabricObject[]
-     * @private
-     */
     _defineProperty(_assertThisInitialized(_this54), "_objectsToRender", []);
-    /**
-     * hold a referenfce to a data structure that contains information
-     * on the current on going transform
-     * @type
-     * @private
-     */
     _defineProperty(_assertThisInitialized(_this54), "_currentTransform", null);
-    /**
-     * hold a reference to a data structure used to track the selecion
-     * box on canvas drag
-     * on the current on going transform
-     * @type
-     * @private
-     */
     _defineProperty(_assertThisInitialized(_this54), "_groupSelector", null);
-    /**
-     * internal flag used to understand if the context top requires a cleanup
-     * in case this is true, the contextTop will be cleared at the next render
-     * @type boolean
-     * @private
-     */
     _defineProperty(_assertThisInitialized(_this54), "contextTopDirty", false);
     return _this54;
   }
@@ -31091,13 +30881,6 @@ var Text = /*#__PURE__*/function (_StyledText) {
 // this will be a separated effort
 exports.Text = Text;
 _defineProperty(Text, "genericFonts", ['sans-serif', 'serif', 'cursive', 'fantasy', 'monospace']);
-/* _FROM_SVG_START_ */
-/**
- * List of attribute names to account for when parsing SVG element (used by {@link Text.fromElement})
- * @static
- * @memberOf Text
- * @see: http://www.w3.org/TR/SVG/text.html#TextElement
- */
 _defineProperty(Text, "ATTRIBUTE_NAMES", SHARED_ATTRIBUTES.concat('x', 'y', 'dx', 'dy', 'font-family', 'font-style', 'font-weight', 'font-size', 'letter-spacing', 'text-decoration', 'text-anchor'));
 var textDefaultValues = {
   _dimensionAffectingProps: ['fontSize', 'fontWeight', 'fontFamily', 'fontStyle', 'lineHeight', 'text', 'charSpacing', 'textAlign', 'styles', 'path', 'pathStartOffset', 'pathSide', 'pathAlign'],
@@ -31536,10 +31319,6 @@ var ITextBehavior = /*#__PURE__*/function (_Text) {
     var _this68;
     _classCallCheck(this, ITextBehavior);
     _this68 = _super58.apply(this, arguments);
-    /**
-     * Helps determining when the text is in composition, so that the cursor
-     * rendering is altered.
-     */
     _defineProperty(_assertThisInitialized(_this68), "_currentCursorOpacity", 1);
     return _this68;
   }
@@ -56990,7 +56769,7 @@ function imageCornerMR(dim, finalMatrix, fabricObject /* currentControl */) {
   var sY = fabricObject.originalScaleX || fabricObject.scaleX;
   // (this.originalScaleX || this.scaleX)
   var point = {
-    x: fullWidth * sX - fabricObject.width / 2 - fabricObject.cropX,
+    x: fullWidth - fabricObject.width / 2 - fabricObject.cropX,
     y: fullHeight / 2 - fabricObject.height / 2 - fabricObject.cropY
   };
   return fabric.util.transformPoint(point, _finalMatrix);
@@ -57075,7 +56854,7 @@ function scaleObjectMR(eventData, transform, x, y, options) {
       strokePadding = target_1.strokeWidth / (target_1.strokeUniform ? target_1.scaleX : 1),
       multiplier = (0, _util.isTransformCentered)(transform) ? 2 : 1,
       // @ts-ignore
-      oldWidth = target_1.clippingPath.width,
+      oldWidth = target_1.width,
       newWidth_1 = Math.ceil(Math.abs(newPoint.x * multiplier / target_1.scaleX) - strokePadding);
     // @ts-ignore
     target_1.clippingPath.set('width', Math.max(newWidth_1, 0));
@@ -57088,14 +56867,13 @@ function scaleObjectMR(eventData, transform, x, y, options) {
       return oldWidth !== target_1.width;
     }
     //  check against actual target width in case `newWidth` was rejected
-    console.log(scaleX, '=== scaleX ===');
     target_1.set('originalScaleX', scaleX);
     target_1.set('originalScaleY', scaleX);
     target_1.set('width', Math.max(newWidth_1, 0));
     // @ts-ignore
     target_1.set('height', target_1.clippingPath.height);
     // @ts-ignore
-    return oldWidth !== target_1.clippingPath.width;
+    return oldWidth !== target_1.width;
   }
   // // target.scaleX = scaleX;
   // // target.width = newWidth;
@@ -58167,17 +57945,19 @@ var EditorClippingMask = /** @class */function (_super) {
       var elHeight = this.getElementHeight() - padding;
       var imageCopyX = -this.cropX - width / 2;
       var imageCopyY = -this.cropY - height / 2;
-      ctx.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
-      ctx.drawImage(elementToDraw,
-      // imageCopyX / (this.originalScaleX || this.scaleX),
-      // imageCopyY / (this.originalScaleY || this.scaleY),
-      imageCopyX, imageCopyY, elWidth, elHeight);
+      // const sX = (this.originalScaleX || this.scaleX);
+      // const sY = (this.originalScaleX || this.scaleX);
+      // ctx.scale(sX, sY);
+      ctx.drawImage(elementToDraw, imageCopyX, imageCopyY, elWidth, elHeight);
       ctx.restore();
       ctx.globalAlpha = 1;
     }
   };
   EditorClippingMask.prototype._renderClippingByText = function (ctx) {
     if (this.clippingPath) {
+      var _a = this,
+        width = _a.width,
+        height = _a.height;
       var elementToDraw = this._elementToDraw;
       var clipPathScaleFactorX = this.clippingPath.scaleX;
       var clipPathScaleFactorY = this.clippingPath.scaleY;
@@ -58197,39 +57977,47 @@ var EditorClippingMask = /** @class */function (_super) {
       ctxEl.save();
       // console.log(this.cropY, 'this.cropY')
       if (elementToDraw) {
-        var _a = this,
-          width = _a.width,
-          height = _a.height;
-        var elWidth = elementToDraw.naturalWidth || elementToDraw.width;
-        var elHeight = elementToDraw.naturalHeight || elementToDraw.height;
-        ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
-        ctxEl.drawImage(elementToDraw, this.cropX, this.cropY, Math.max(1, Math.floor(elWidth)), Math.max(1, Math.floor(elHeight)), canvasEl.width / 2 - width / 2, canvasEl.height / 2 - height / 2, Math.max(0, Math.floor(elWidth)), Math.max(0, Math.floor(elHeight)));
-        ctxEl.restore();
-        // ctxEl.save();
-        // const scaleX = this._filterScalingX;
-        // const scaleY = this._filterScalingY;
-        // const w = this.width,
-        //   h = this.height,
-        //   // crop values cannot be lesser than 0.
-        //   cropX = Math.max(this.cropX, 0),
-        //   cropY = Math.max(this.cropY, 0),
-        //   elWidth = elementToDraw.naturalWidth || elementToDraw.width,
-        //   elHeight = elementToDraw.naturalHeight || elementToDraw.height,
-        //   sX = cropX * scaleX,
-        //   sY = cropY * scaleY,
-        //   // the width height cannot exceed element width/height, starting from the crop offset.
-        //   sW = Math.min(w * scaleX, elWidth - sX),
-        //   sH = Math.min(h * scaleY, elHeight - sY),
-        //   // x = -w / 2,
-        //   // y = -h / 2,
-        //   x = canvasEl.width / 2 - w / 2,
-        //   y = canvasEl.height / 2 - h / 2,
-        //   maxDestW = Math.min(w, elWidth / scaleX - cropX),
-        //   maxDestH = Math.min(h, elHeight / scaleY - cropY);
-        // ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
-        // // ctxEl.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
-        // ctxEl.drawImage(elementToDraw, sX, sY, elWidth, elHeight, x, y, elWidth, elHeight);
+        // const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
+        // const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
+        // ctxEl.scale((this.originalScaleX || this.scaleX), (this.originalScaleY || this.scaleY));
+        // ctxEl.drawImage(
+        //   elementToDraw,
+        //   this.cropX,
+        //   this.cropY,
+        //   Math.max(1, Math.floor(elWidth)),
+        //   Math.max(1, Math.floor(elHeight)),
+        //   (canvasEl.width / 2 - width / 2),
+        //   (canvasEl.height / 2 - height / 2),
+        //   Math.max(0, Math.floor(elWidth)),
+        //   Math.max(0, Math.floor(elHeight)),
+        // );
         // ctxEl.restore();
+        ctxEl.save();
+        var scaleX = this._filterScalingX;
+        var scaleY = this._filterScalingY;
+        var w = this.width,
+          h = this.height,
+          // crop values cannot be lesser than 0.
+          cropX = Math.max(this.cropX, 0),
+          cropY = Math.max(this.cropY, 0),
+          elWidth = elementToDraw.naturalWidth || elementToDraw.width,
+          elHeight = elementToDraw.naturalHeight || elementToDraw.height,
+          sX = cropX * scaleX,
+          sY = cropY * scaleY,
+          // the width height cannot exceed element width/height, starting from the crop offset.
+          sW = Math.min(w * scaleX, elWidth - sX),
+          sH = Math.min(h * scaleY, elHeight - sY),
+          // x = -w / 2,
+          // y = -h / 2,
+          x = canvasEl.width / 2 - w / 2,
+          y = canvasEl.height / 2 - h / 2,
+          maxDestW = Math.min(w, elWidth / scaleX - cropX),
+          maxDestH = Math.min(h, elHeight / scaleY - cropY);
+        //   ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
+        // ctxEl.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
+        ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
+        ctxEl.drawImage(elementToDraw, sX, sY, elWidth, elHeight, x, y, elWidth, elHeight);
+        ctxEl.restore();
       }
       // ctxEl.globalCompositeOperation = 'destination-atop';
       ctxEl.drawImage(ctxClippingPath.canvas, 0, 0);
@@ -61752,7 +61540,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62461" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50306" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

@@ -661,7 +661,7 @@ function imageCornerMR(dim, finalMatrix, fabricObject /* currentControl */) {
     var sY = (fabricObject.originalScaleX || fabricObject.scaleX);
     // (this.originalScaleX || this.scaleX)
     var point = {
-        x: (fullWidth * sX - fabricObject.width / 2 - fabricObject.cropX),
+        x: (fullWidth - fabricObject.width / 2 - fabricObject.cropX),
         y: (fullHeight / 2 - fabricObject.height / 2 - fabricObject.cropY),
     };
     return fabric.util.transformPoint(point, _finalMatrix);
@@ -742,7 +742,7 @@ function scaleObjectMR(eventData, transform, x, y, options) {
         (transform.originX === 'left' && newPoint.x > 0)) {
         var target_1 = transform.target, strokePadding = target_1.strokeWidth / (target_1.strokeUniform ? target_1.scaleX : 1), multiplier = isTransformCentered(transform) ? 2 : 1, 
         // @ts-ignore
-        oldWidth = target_1.clippingPath.width, newWidth_1 = Math.ceil(Math.abs((newPoint.x * multiplier) / target_1.scaleX) - strokePadding);
+        oldWidth = target_1.width, newWidth_1 = Math.ceil(Math.abs((newPoint.x * multiplier) / target_1.scaleX) - strokePadding);
         // @ts-ignore
         target_1.clippingPath.set('width', Math.max(newWidth_1, 0));
         // @ts-ignore
@@ -754,14 +754,13 @@ function scaleObjectMR(eventData, transform, x, y, options) {
             return oldWidth !== target_1.width;
         }
         //  check against actual target width in case `newWidth` was rejected
-        console.log(scaleX, '=== scaleX ===');
         target_1.set('originalScaleX', scaleX);
         target_1.set('originalScaleY', scaleX);
         target_1.set('width', Math.max(newWidth_1, 0));
         // @ts-ignore
         target_1.set('height', target_1.clippingPath.height);
         // @ts-ignore
-        return oldWidth !== target_1.clippingPath.width;
+        return oldWidth !== target_1.width;
     }
     // // target.scaleX = scaleX;
     // // target.width = newWidth;

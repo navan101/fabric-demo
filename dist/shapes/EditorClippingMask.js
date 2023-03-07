@@ -373,17 +373,17 @@ var EditorClippingMask = /** @class */ (function (_super) {
             var elHeight = this.getElementHeight() - padding;
             var imageCopyX = -this.cropX - width / 2;
             var imageCopyY = -this.cropY - height / 2;
-            ctx.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
-            ctx.drawImage(elementToDraw, 
-            // imageCopyX / (this.originalScaleX || this.scaleX),
-            // imageCopyY / (this.originalScaleY || this.scaleY),
-            imageCopyX, imageCopyY, elWidth, elHeight);
+            // const sX = (this.originalScaleX || this.scaleX);
+            // const sY = (this.originalScaleX || this.scaleX);
+            // ctx.scale(sX, sY);
+            ctx.drawImage(elementToDraw, imageCopyX, imageCopyY, elWidth, elHeight);
             ctx.restore();
             ctx.globalAlpha = 1;
         }
     };
     EditorClippingMask.prototype._renderClippingByText = function (ctx) {
         if (this.clippingPath) {
+            var _a = this, width = _a.width, height = _a.height;
             var elementToDraw = this._elementToDraw;
             var clipPathScaleFactorX = this.clippingPath.scaleX;
             var clipPathScaleFactorY = this.clippingPath.scaleY;
@@ -403,37 +403,37 @@ var EditorClippingMask = /** @class */ (function (_super) {
             ctxEl.save();
             // console.log(this.cropY, 'this.cropY')
             if (elementToDraw) {
-                var _a = this, width = _a.width, height = _a.height;
-                var elWidth = elementToDraw.naturalWidth || elementToDraw.width;
-                var elHeight = elementToDraw.naturalHeight || elementToDraw.height;
-                ctxEl.scale((this.originalScaleX || this.scaleX), (this.originalScaleY || this.scaleY));
-                ctxEl.drawImage(elementToDraw, this.cropX, this.cropY, Math.max(1, Math.floor(elWidth)), Math.max(1, Math.floor(elHeight)), (canvasEl.width / 2 - width / 2), (canvasEl.height / 2 - height / 2), Math.max(0, Math.floor(elWidth)), Math.max(0, Math.floor(elHeight)));
-                ctxEl.restore();
-                // ctxEl.save();
-                // const scaleX = this._filterScalingX;
-                // const scaleY = this._filterScalingY;
-                // const w = this.width,
-                //   h = this.height,
-                //   // crop values cannot be lesser than 0.
-                //   cropX = Math.max(this.cropX, 0),
-                //   cropY = Math.max(this.cropY, 0),
-                //   elWidth = elementToDraw.naturalWidth || elementToDraw.width,
-                //   elHeight = elementToDraw.naturalHeight || elementToDraw.height,
-                //   sX = cropX * scaleX,
-                //   sY = cropY * scaleY,
-                //   // the width height cannot exceed element width/height, starting from the crop offset.
-                //   sW = Math.min(w * scaleX, elWidth - sX),
-                //   sH = Math.min(h * scaleY, elHeight - sY),
-                //   // x = -w / 2,
-                //   // y = -h / 2,
-                //   x = canvasEl.width / 2 - w / 2,
-                //   y = canvasEl.height / 2 - h / 2,
-                //   maxDestW = Math.min(w, elWidth / scaleX - cropX),
-                //   maxDestH = Math.min(h, elHeight / scaleY - cropY);
-                // ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
-                // // ctxEl.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
-                // ctxEl.drawImage(elementToDraw, sX, sY, elWidth, elHeight, x, y, elWidth, elHeight);
+                // const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
+                // const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
+                // ctxEl.scale((this.originalScaleX || this.scaleX), (this.originalScaleY || this.scaleY));
+                // ctxEl.drawImage(
+                //   elementToDraw,
+                //   this.cropX,
+                //   this.cropY,
+                //   Math.max(1, Math.floor(elWidth)),
+                //   Math.max(1, Math.floor(elHeight)),
+                //   (canvasEl.width / 2 - width / 2),
+                //   (canvasEl.height / 2 - height / 2),
+                //   Math.max(0, Math.floor(elWidth)),
+                //   Math.max(0, Math.floor(elHeight)),
+                // );
                 // ctxEl.restore();
+                ctxEl.save();
+                var scaleX = this._filterScalingX;
+                var scaleY = this._filterScalingY;
+                var w = this.width, h = this.height, 
+                // crop values cannot be lesser than 0.
+                cropX = Math.max(this.cropX, 0), cropY = Math.max(this.cropY, 0), elWidth = elementToDraw.naturalWidth || elementToDraw.width, elHeight = elementToDraw.naturalHeight || elementToDraw.height, sX = cropX * scaleX, sY = cropY * scaleY, 
+                // the width height cannot exceed element width/height, starting from the crop offset.
+                sW = Math.min(w * scaleX, elWidth - sX), sH = Math.min(h * scaleY, elHeight - sY), 
+                // x = -w / 2,
+                // y = -h / 2,
+                x = canvasEl.width / 2 - w / 2, y = canvasEl.height / 2 - h / 2, maxDestW = Math.min(w, elWidth / scaleX - cropX), maxDestH = Math.min(h, elHeight / scaleY - cropY);
+                //   ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
+                // ctxEl.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
+                ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
+                ctxEl.drawImage(elementToDraw, sX, sY, elWidth, elHeight, x, y, elWidth, elHeight);
+                ctxEl.restore();
             }
             // ctxEl.globalCompositeOperation = 'destination-atop';
             ctxEl.drawImage(ctxClippingPath.canvas, 0, 0);
