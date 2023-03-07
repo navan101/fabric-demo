@@ -391,7 +391,7 @@ export class EditorClippingMask extends EditorImage {
   }
 
   _renderClippingBackground(ctx: CanvasRenderingContext2D) {
-    if (this.isClipping) {
+    // if (this.isClipping) {
       ctx.save()
       const { width } = this;
       const { height } = this;
@@ -415,7 +415,7 @@ export class EditorClippingMask extends EditorImage {
       );
       ctx.restore();
       ctx.globalAlpha = 1;
-    }
+    // }
   }
 
   _renderClippingByText(ctx: CanvasRenderingContext2D) {
@@ -444,11 +444,9 @@ export class EditorClippingMask extends EditorImage {
       ctxEl.save();
       // console.log(this.cropY, 'this.cropY')
       if (elementToDraw) {
-        
-
         // const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
         // const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
-        // ctxEl.scale((this.originalScaleX || this.scaleX), (this.originalScaleY || this.scaleY));
+        // // ctxEl.scale((this.originalScaleX || this.scaleX), (this.originalScaleY || this.scaleY));
         // ctxEl.drawImage(
         //   elementToDraw,
         //   this.cropX,
@@ -483,10 +481,7 @@ export class EditorClippingMask extends EditorImage {
           y = canvasEl.height / 2 - h / 2,
           maxDestW = Math.min(w, elWidth / scaleX - cropX),
           maxDestH = Math.min(h, elHeight / scaleY - cropY);
-        //   ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
-        // ctxEl.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
-        ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
-        ctxEl.drawImage(elementToDraw, sX, sY, elWidth, elHeight, x, y, elWidth, elHeight);
+        ctxEl.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
         ctxEl.restore();
       }
       // ctxEl.globalCompositeOperation = 'destination-atop';

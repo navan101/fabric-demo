@@ -831,7 +831,7 @@ function imageCornerMR(dim, finalMatrix, fabricObject /* currentControl */) {
   return fabric.util.transformPoint(point, _finalMatrix);
 }
 
-function scaleObjectMR(
+function scaleObjectMR1(
   eventData: TPointerEvent,
   transform: ScaleTransform,
   x: number,
@@ -874,7 +874,7 @@ function scaleObjectMR(
       return false;
     }
 
-    dim = target._getOriginalTransformedDimensions();
+    dim = target._getTransformedDimensions();
     // missing detection of flip and logic to switch the origin
     if (scaleProportionally && !by) {
       // uniform scaling
@@ -889,8 +889,6 @@ function scaleObjectMR(
     } else {
       scaleX = Math.abs((newPoint.x * target.scaleX) / dim.x);
       scaleY = Math.abs((newPoint.y * target.scaleY) / dim.y);
-      console.log(scaleX, 'scaleX')
-      console.log(scaleY, 'scaleY');
     }
     // if we are scaling by center, we need to double the scale
     if (isTransformCentered(transform)) {
@@ -911,48 +909,50 @@ function scaleObjectMR(
   // console.log(scaleX, 'scaleX');
   // console.log(scaleY, 'scaleY');
 
-  const oldScaleX = target.scaleX;
-  const scaleChangeX = scaleX / oldScaleX;
-  const newWidth = target.width / scaleChangeX;
-  const newCropX = target.cropX / scaleChangeX;
+  // const oldScaleX = target.scaleX;
+  // const scaleChangeX = scaleX / oldScaleX;
+  // const newWidth = target.width / scaleChangeX;
+  // const newCropX = target.cropX / scaleChangeX;
 
   // if (newCropX + newWidth > fullWidth) {
   //   return false;
   // }
 
-  if (
-    transform.originX === 'center' ||
-    (transform.originX === 'right' && newPoint.x < 0) ||
-    (transform.originX === 'left' && newPoint.x > 0)
-  ) {
-    const { target } = transform,
-      strokePadding =
-        target.strokeWidth / (target.strokeUniform ? target.scaleX : 1),
-      multiplier = isTransformCentered(transform) ? 2 : 1,
-      // @ts-ignore
-      oldWidth = target.width,
-      newWidth = Math.ceil(
-        Math.abs((newPoint.x * multiplier) / target.scaleX) - strokePadding
-      );
-    // @ts-ignore
-    target.clippingPath.set('width', Math.max(newWidth, 0));
-    // @ts-ignore
-    if (target.clippingPath.dynamicMinWidth >= target.clippingPath.width) {
-      // @ts-ignore
-      target.set('width', target.clippingPath.dynamicMinWidth);
-      // @ts-ignore
-      target.set('height', target.clippingPath.height);
-      return oldWidth !== target.width;
-    }
-    //  check against actual target width in case `newWidth` was rejected
-    target.set('originalScaleX', scaleX);
-    target.set('originalScaleY', scaleX);
-    target.set('width', Math.max(newWidth, 0));
-    // @ts-ignore
-    target.set('height', target.clippingPath.height);
-    // @ts-ignore
-    return oldWidth !== target.width;
-  }
+  // if (
+  //   transform.originX === 'center' ||
+  //   (transform.originX === 'right' && newPoint.x < 0) ||
+  //   (transform.originX === 'left' && newPoint.x > 0)
+  // ) {
+  //   const { target } = transform,
+  //     strokePadding =
+  //       target.strokeWidth / (target.strokeUniform ? target.scaleX : 1),
+  //     multiplier = isTransformCentered(transform) ? 2 : 1,
+  //     // @ts-ignore
+  //     oldWidth = target.clippingPath.width,
+  //     newWidth = Math.ceil(
+  //       Math.abs((newPoint.x * multiplier) / target.scaleX) - strokePadding
+  //     );
+  //   // @ts-ignore
+  //   // target.clippingPath.set('width', Math.max(newWidth, 0));
+  //   console.log(scaleX, 'scaleX')
+  //   console.log(scaleY, 'scaleY');
+  //   // @ts-ignore
+  //   // if (target.clippingPath.dynamicMinWidth >= target.clippingPath.width) {
+  //   //   // @ts-ignore
+  //   //   target.set('width', target.clippingPath.dynamicMinWidth);
+  //   //   // @ts-ignore
+  //   //   target.set('height', target.clippingPath.height);
+  //   //   return oldWidth !== target.width;
+  //   // }
+  //   //  check against actual target width in case `newWidth` was rejected
+  //   // target.set('originalScaleX', scaleX);
+  //   // target.set('originalScaleY', scaleX);
+  //   // target.set('width', Math.max(newWidth, 0));
+  //   // @ts-ignore
+  //   // target.set('height', target.clippingPath.height);
+  //   // @ts-ignore
+  //   // return oldWidth !== target.clippingPath.width;
+  // }
 
 
   // // target.scaleX = scaleX;
@@ -963,7 +963,130 @@ function scaleObjectMR(
   // // }
   // const newAnchorOriginX = target.cropX / target.width;
   // target.setPositionByOrigin(constraint, -newAnchorOriginX, transform.originY);
+  // minScale is taken are in the setter.
+  const oldScaleX = target.scaleX,
+    oldScaleY = target.scaleY;
+  if (!by) {
+    !isLocked(target, 'lockScalingX') && target.set('scaleX', scaleX);
+    !isLocked(target, 'lockScalingY') && target.set('scaleY', scaleY);
+  } else {
+    // forbidden cases already handled on top here.
+    by === 'x' && target.set('scaleX', scaleX);
+    by === 'y' && target.set('scaleY', scaleY);
+  }
+  return oldScaleX !== target.scaleX || oldScaleY !== target.scaleY;
   return true;
+}
+
+function scaleObjectMR(
+  eventData: TPointerEvent,
+  transform: ScaleTransform,
+  x: number,
+  y: number,
+  options: { by?: ScaleBy } = {}
+) {
+  const target = transform.target,
+    by = options.by,
+    scaleProportionally = scaleIsProportional(eventData, target),
+    forbidScaling = scalingIsForbidden(target, by, scaleProportionally);
+  let newPoint, scaleX, scaleY, dim, signX, signY;
+
+  if (forbidScaling) {
+    return false;
+  }
+  if (transform.gestureScale) {
+    scaleX = transform.scaleX * transform.gestureScale;
+    scaleY = transform.scaleY * transform.gestureScale;
+  } else {
+    newPoint = fabric.controlsUtils.getLocalPoint(
+      // @ts-ignore
+      transform,
+      transform.originX,
+      transform.originY,
+      x,
+      y
+    );
+    // use of sign: We use sign to detect change of direction of an action. sign usually change when
+    // we cross the origin point with the mouse. So a scale flip for example. There is an issue when scaling
+    // by center and scaling using one middle control ( default: mr, mt, ml, mb), the mouse movement can easily
+    // cross many time the origin point and flip the object. so we need a way to filter out the noise.
+    // This ternary here should be ok to filter out X scaling when we want Y only and vice versa.
+    signX = by !== 'y' ? Math.sign(newPoint.x || transform.signX || 1) : 1;
+    signY = by !== 'x' ? Math.sign(newPoint.y || transform.signY || 1) : 1;
+    if (!transform.signX) {
+      transform.signX = signX;
+    }
+    if (!transform.signY) {
+      transform.signY = signY;
+    }
+
+    if (
+      isLocked(target, 'lockScalingFlip') &&
+      (transform.signX !== signX || transform.signY !== signY)
+    ) {
+      return false;
+    }
+
+    dim = target._getTransformedDimensions();
+    // @ts-ignore
+    // dim = target._getOriginalTransformedDimensions();
+    // missing detection of flip and logic to switch the origin
+    if (scaleProportionally && !by) {
+      // uniform scaling
+      const distance = Math.abs(newPoint.x) + Math.abs(newPoint.y),
+        { original } = transform,
+        originalDistance =
+          Math.abs((dim.x * original.scaleX) / target.scaleX) +
+          Math.abs((dim.y * original.scaleY) / target.scaleY),
+        scale = distance / originalDistance;
+      scaleX = original.scaleX * scale;
+      scaleY = original.scaleY * scale;
+    } else {
+      scaleX = Math.abs((newPoint.x * target.scaleX) / dim.x);
+      scaleY = Math.abs((newPoint.y * target.scaleY) / dim.y);
+    }
+    // if we are scaling by center, we need to double the scale
+    if (isTransformCentered(transform)) {
+      scaleX *= 2;
+      scaleY *= 2;
+    }
+    if (transform.signX !== signX && by !== 'y') {
+      transform.originX = invertOrigin(transform.originX);
+      scaleX *= -1;
+      transform.signX = signX;
+    }
+    if (transform.signY !== signY && by !== 'x') {
+      transform.originY = invertOrigin(transform.originY);
+      scaleY *= -1;
+      transform.signY = signY;
+    }
+  }
+  // minScale is taken are in the setter.
+  const oldScaleX = target.scaleX;
+  const oldScaleY = target.scaleY;
+  const scaleChangeX = scaleX / oldScaleX;
+  const scaleChangeY = scaleX / oldScaleX;
+  // @ts-ignore
+  target.clippingPath.set('width', target.width * scaleX);
+  // @ts-ignore
+  if (target.clippingPath.dynamicMinWidth >= target.clippingPath.width) {
+    return oldScaleX !== target.scaleX || oldScaleY !== target.scaleY;
+  }
+  if (!by) {
+    !isLocked(target, 'lockScalingX') && target.set('scaleX', scaleX);
+    !isLocked(target, 'lockScalingY') && target.set('scaleY', scaleY);
+  } else {
+    // forbidden cases already handled on top here.
+    by === 'x' && target.set('scaleX', scaleX);
+    by === 'y' && target.set('scaleY', scaleY);
+  }
+  // @ts-ignore
+  // target.set('height', target.clippingPath.height / target.scaleY);
+  // @ts-ignore
+  target.clippingPath.scaleX /= scaleChangeX;
+  // @ts-ignore
+  target.clippingPath.scaleY /= scaleChangeY;
+  return oldScaleX !== target.scaleX || oldScaleY !== target.scaleY;
 }
 
 function scaleObjectML(
@@ -1116,12 +1239,12 @@ const scaleObjectFromCorner: TransformActionHandler<ScaleTransform> = (
   x,
   y
 ) => {
-  console.log(transform, 'transform')
   const corner = transform.corner;
   if (corner === 'mr') {
-    return scaleObjectMR(eventData, transform, x, y, { by: 'x' });
+    return scaleObjectMR(eventData, transform, x, y);
   } else {
-    return scaleObjectML(eventData, transform, x, y, { by: 'x' });
+    // return scaleObjectML(eventData, transform, x, y);
+    return scaleObjectMR(eventData, transform, x, y);
   }
 };
 

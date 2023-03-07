@@ -361,25 +361,25 @@ var EditorClippingMask = /** @class */ (function (_super) {
         // this.cacheHeight = this.height + this.strokeWidth;
     };
     EditorClippingMask.prototype._renderClippingBackground = function (ctx) {
-        if (this.isClipping) {
-            ctx.save();
-            var width = this.width;
-            var height = this.height;
-            var elementToDraw = this._elementToDraw;
-            ctx.globalAlpha = this.cropOpacity;
-            // const padding = this.getElementPadding();
-            var padding = 0;
-            var elWidth = this.getElementWidth() - padding;
-            var elHeight = this.getElementHeight() - padding;
-            var imageCopyX = -this.cropX - width / 2;
-            var imageCopyY = -this.cropY - height / 2;
-            // const sX = (this.originalScaleX || this.scaleX);
-            // const sY = (this.originalScaleX || this.scaleX);
-            // ctx.scale(sX, sY);
-            ctx.drawImage(elementToDraw, imageCopyX, imageCopyY, elWidth, elHeight);
-            ctx.restore();
-            ctx.globalAlpha = 1;
-        }
+        // if (this.isClipping) {
+        ctx.save();
+        var width = this.width;
+        var height = this.height;
+        var elementToDraw = this._elementToDraw;
+        ctx.globalAlpha = this.cropOpacity;
+        // const padding = this.getElementPadding();
+        var padding = 0;
+        var elWidth = this.getElementWidth() - padding;
+        var elHeight = this.getElementHeight() - padding;
+        var imageCopyX = -this.cropX - width / 2;
+        var imageCopyY = -this.cropY - height / 2;
+        // const sX = (this.originalScaleX || this.scaleX);
+        // const sY = (this.originalScaleX || this.scaleX);
+        // ctx.scale(sX, sY);
+        ctx.drawImage(elementToDraw, imageCopyX, imageCopyY, elWidth, elHeight);
+        ctx.restore();
+        ctx.globalAlpha = 1;
+        // }
     };
     EditorClippingMask.prototype._renderClippingByText = function (ctx) {
         if (this.clippingPath) {
@@ -405,7 +405,7 @@ var EditorClippingMask = /** @class */ (function (_super) {
             if (elementToDraw) {
                 // const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
                 // const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
-                // ctxEl.scale((this.originalScaleX || this.scaleX), (this.originalScaleY || this.scaleY));
+                // // ctxEl.scale((this.originalScaleX || this.scaleX), (this.originalScaleY || this.scaleY));
                 // ctxEl.drawImage(
                 //   elementToDraw,
                 //   this.cropX,
@@ -429,10 +429,7 @@ var EditorClippingMask = /** @class */ (function (_super) {
                 // x = -w / 2,
                 // y = -h / 2,
                 x = canvasEl.width / 2 - w / 2, y = canvasEl.height / 2 - h / 2, maxDestW = Math.min(w, elWidth / scaleX - cropX), maxDestH = Math.min(h, elHeight / scaleY - cropY);
-                //   ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
-                // ctxEl.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
-                ctxEl.scale(this.originalScaleX || this.scaleX, this.originalScaleY || this.scaleY);
-                ctxEl.drawImage(elementToDraw, sX, sY, elWidth, elHeight, x, y, elWidth, elHeight);
+                ctxEl.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
                 ctxEl.restore();
             }
             // ctxEl.globalCompositeOperation = 'destination-atop';
