@@ -7,7 +7,7 @@ var getDistanceFromPointToLine = function (point, pointLineA, pointLineB) {
 };
 export var saveObjectTransform = function (target) {
     var clippingPath;
-    if (target.clippingPath instanceof fabric.Textbox) {
+    if (target.clippingPath instanceof fabric.Image) {
         // console.log(target, 'target');
         // const {
         //   tl: tl1, tr: tr1, bl: bl1,

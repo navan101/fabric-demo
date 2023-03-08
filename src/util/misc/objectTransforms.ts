@@ -9,7 +9,7 @@ const getDistanceFromPointToLine = (point: fabric.Point, pointLineA: fabric.Poin
 
 export const saveObjectTransform = (target: any) => {
   let clippingPath;
-  if (target.clippingPath instanceof fabric.Textbox) {
+  if (target.clippingPath instanceof fabric.Image) {
     // console.log(target, 'target');
     // const {
     //   tl: tl1, tr: tr1, bl: bl1,
