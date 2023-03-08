@@ -59257,20 +59257,41 @@ function scaleObjectCrop1(eventData, transform, x, y, options) {
     scaleProportionally = scaleIsProportional(eventData, target),
     forbidScaling = scalingIsForbidden(target, by, scaleProportionally);
   var newPoint, scaleX, scaleY, dim, signX, signY;
-  console.log(original, 'original');
   if (forbidScaling) {
     return false;
   }
   // @ts-ignore
+  var fullWidth = target.clippingPath.getOriginalElementWidth();
+  // @ts-ignore
+  var fullHeight = target.clippingPath.getOriginalElementHeight();
+  // @ts-ignore
+  var remainderX = fullWidth - target.clippingPath.width - target.cropX;
+  // @ts-ignore
+  var remainderY = fullHeight - target.clippingPath.height - target.cropY;
+  // @ts-ignore
+  var anchorOriginX = 1 + remainderX / target.clippingPath.width;
+  // @ts-ignore
+  var anchorOriginY = 1 + remainderY / target.clippingPath.height;
+  // @ts-ignore
+  var anchorOriginX1 = target.cropX / target.clippingPath.width;
+  // @ts-ignore
+  var anchorOriginY1 = target.cropY / target.clippingPath.height;
+  console.log(anchorOriginX, 'anchorOriginX');
+  console.log(anchorOriginY, 'anchorOriginY');
+  console.log(anchorOriginX1, 'anchorOriginX1');
+  console.log(anchorOriginY1, 'anchorOriginY1');
+  // @ts-ignore
   var centerPoint = target.clippingPath.getRelativeCenterPoint();
   // @ts-ignore
-  var constraint = target.clippingPath.translateToOriginPoint(centerPoint, transform.originX, transform.originY);
+  var constraint = target.clippingPath.translateToOriginPoint(centerPoint, anchorOriginX1, anchorOriginY1);
   if (transform.gestureScale) {
     scaleX = transform.scaleX * transform.gestureScale;
     scaleY = transform.scaleY * transform.gestureScale;
   } else {
     // newPoint = normalizePoint(target.pattern, new fabric.Point(x, y), transform.originX, transform.originY);
-    newPoint = getPatternLocalPoint(transform, transform.originX, transform.originY, x, y);
+    // newPoint = getPatternLocalPoint(transform, transform.originX, transform.originY, x, y);
+    // @ts-ignore
+    newPoint = (0, _util.normalizePoint)(target.clippingPath, new fabric.Point(x, y), transform.originX, transform.originY);
     signX = by !== 'y' ? Math.sign(newPoint.x || transform.signX || 1) : 1;
     signY = by !== 'x' ? Math.sign(newPoint.y || transform.signY || 1) : 1;
     if (!transform.signX) {
@@ -59326,44 +59347,82 @@ function scaleObjectCrop1(eventData, transform, x, y, options) {
   var oldScaleX = target.clippingPath.scaleX;
   // @ts-ignore
   var oldScaleY = target.clippingPath.scaleY;
-  // const corner = target.__corner;
-  // const originPattern = transform.original.clippingPath;
-  // let lockMinScaleY = false;
-  // let lockMinScaleX = false;
-  // if (corner && originPattern && originPattern.minScale && originPattern.minScale[corner]) {
-  //   const scale = originPattern.minScale[corner];
-  //   lockMinScaleX = scaleX < scale.scaleX;
-  //   lockMinScaleY = scaleY < scale.scaleY;
-  //   if (lockMinScaleX) {
-  //     scaleX = scale.scaleX;
-  //   }
-  //   if (lockMinScaleY) {
-  //     scaleY = scale.scaleY;
-  //   }
-  // }
-  // if (!by) {
-  //   // @ts-ignore
-  //   !isLocked(target, 'lockScalingX') && !lockMinScaleY && target.clippingPath.set('scaleX', scaleX);
-  //   // @ts-ignore
-  //   !isLocked(target, 'lockScalingY') && !lockMinScaleX && target.clippingPath.set('scaleY', scaleY);
-  // } else {
-  //   // forbidden cases already handled on top here.
-  //   // @ts-ignore
-  //   by === 'x' && target.clippingPath.set('scaleX', scaleX);
-  //   // @ts-ignore
-  //   by === 'y' && target.clippingPath.set('scaleY', scaleY);
-  // }
+  var corner = target.__corner;
+  var originClippingPath = transform.original.clippingPath;
+  var lockMinScaleY = false;
+  var lockMinScaleX = false;
   // @ts-ignore
-  // target.clippingPath.setPositionByOrigin(constraint, transform.originX, transform.originY);
-  // const centerPattern = target.pattern.getRelativeCenterPoint();
+  if (corner && originClippingPath && originClippingPath.minScale && originClippingPath.minScale[corner]) {
+    // @ts-ignore
+    var scale = originClippingPath.minScale[corner];
+    lockMinScaleX = scaleX < scale.scaleX;
+    lockMinScaleY = scaleY < scale.scaleY;
+    if (lockMinScaleX) {
+      scaleX = scale.scaleX;
+    }
+    if (lockMinScaleY) {
+      scaleY = scale.scaleY;
+    }
+  }
+  // console.log(scaleX, 'scaleX')
+  // console.log(scaleY, 'scaleY')
+  var scaleChangeX = scaleX / oldScaleX;
+  var scaleChangeY = scaleY / oldScaleY;
+  var scaledRemainderX = remainderX / scaleChangeX;
+  var scaledRemainderY = remainderY / scaleChangeY;
+  // @ts-ignore
+  var newWidth = target.clippingPath.width / scaleChangeX;
+  // @ts-ignore
+  var newHeight = target.clippingPath.height / scaleChangeY;
+  var newCropX = fullWidth - newWidth - scaledRemainderX;
+  var newCropY = fullHeight - newHeight - scaledRemainderY;
+  if (!by) {
+    // @ts-ignore
+    !(0, _util.isLocked)(target, 'lockScalingX') && !lockMinScaleY && target.clippingPath.set('scaleX', scaleX);
+    // @ts-ignore
+    !(0, _util.isLocked)(target, 'lockScalingY') && !lockMinScaleX && target.clippingPath.set('scaleY', scaleY);
+  } else {
+    // forbidden cases already handled on top here.
+    // @ts-ignore
+    by === 'x' && target.clippingPath.set('scaleX', scaleX);
+    // @ts-ignore
+    by === 'y' && target.clippingPath.set('scaleY', scaleY);
+  }
+  // @ts-ignore
+  target.cropX = newCropX;
+  // @ts-ignore
+  target.cropY = newCropY;
+  // console.log(scaleX, 'scaleX');
+  // console.log(scaleY, 'scaleY');
+  //  // @ts-ignore
+  // target.clippingPath.set('scaleX', scaleX);
+  //  // @ts-ignore
+  // target.clippingPath.set('scaleY', scaleY)
+  var newAnchorOriginX = 1 + scaledRemainderX / newWidth;
+  var newAnchorOriginY = 1 + scaledRemainderY / newHeight;
+  // console.log(transform.originX, 'transform.originX');
+  // console.log(transform.originY, 'transform.originY');
+  console.log(constraint, 'constraint');
+  // @ts-ignore
+  target.clippingPath.setPositionByOrigin(constraint, transform.originX, transform.originY);
+  // @ts-ignore
+  console.log(target.clippingPath.top, 'top');
+  // @ts-ignore
+  console.log(target.clippingPath.left, 'left');
+  // @ts-ignore
+  // const centerPattern = target.clippingPath.getRelativeCenterPoint();
   // const center = {
-  //   x: original.pattern.center.x - centerPattern.x,
-  //   y: original.pattern.center.y - centerPattern.y,
+  //   // @ts-ignore
+  //   x: original.clippingPath.center.x - centerPattern.x,
+  //   // @ts-ignore
+  //   y: original.clippingPath.center.y - centerPattern.y,
   // };
   // const angleRadians = fabric.util.degreesToRadians(-target.angle);
   // const pointCenter = new fabric.Point(center.x, center.y);
   // const point = fabric.util.rotateVector(pointCenter, angleRadians);
+  // // @ts-ignore
   // target.cropX = original.cropX + point.x;
+  // // @ts-ignore
   // target.cropY = original.cropY + point.y;
   // const widthPattern = target.pattern.getScaledWidth();
   // const heightPattern = target.pattern.getScaledHeight();
@@ -60289,49 +60348,45 @@ var EditorTextbox = /** @class */function (_super) {
     // this._renderTextDecoration(ctx, 'overline');
     // this._renderTextDecoration(ctx, 'linethrough');
     ctxToDraw.restore();
-    // ctxToDraw.save();
-    // this.transform(ctxToDraw);
-    // this._render(ctxToDraw);
-    // ctxToDraw.restore();
-    // ctxToDraw.save();
-    // // this.clippingPath.transform(ctxToDraw);
-    // // ctxToDraw.globalCompositeOperation = 'source-atop';
-    // ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
-    // this.clippingPath._render(ctxToDraw);
-    // ctxToDraw.restore();
     ctxToDraw.save();
-    ctxToDraw.globalCompositeOperation = 'source-atop';
+    // ctxToDraw.globalCompositeOperation = 'source-atop';
     ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
-    var elementToDraw = this.clippingPath.getElement();
-    if (!elementToDraw) {
-      return;
-    }
-    // @ts-ignore
-    var scaleX = this.clippingPath._filterScalingX;
-    // @ts-ignore
-    var scaleY = this.clippingPath._filterScalingY;
-    var w = this.clippingPath.width;
-    var h = this.clippingPath.height;
-    // crop values cannot be lesser than 0.
-    var cropX = Math.max(this.cropX, 0);
-    var cropY = Math.max(this.cropY, 0);
-    // const cropY = this.cropY
-    // console.log(cropY, 'cropY');
-    // @ts-ignore
-    var elWidth = elementToDraw.naturalWidth || elementToDraw.width;
-    // @ts-ignore
-    var elHeight = elementToDraw.naturalHeight || elementToDraw.height;
-    var sX = cropX * scaleX;
-    var sY = cropY * scaleY;
-    // the width height cannot exceed element width/height, starting from the crop offset.
-    var sW = Math.min(w * scaleX, elWidth - sX);
-    var sH = Math.min(h * scaleY, elHeight - sY);
-    var x = -w / 2;
-    var y = -h / 2;
-    var maxDestW = Math.min(w, elWidth / scaleX - cropX);
-    var maxDestH = Math.min(h, elHeight / scaleY - cropY);
-    // console.log(sX, sY, sW, sH, x, y, maxDestW, maxDestH, 'sX, sY, sW, sH, x, y, maxDestW, maxDestH');
-    elementToDraw && ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
+    this.clippingPath._render(ctxToDraw);
+    ctxToDraw.restore();
+    // ctxToDraw.save();
+    // ctxToDraw.globalCompositeOperation = 'source-atop';
+    // ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
+    // const elementToDraw = this.clippingPath.getElement();
+    // if (!elementToDraw) {
+    //   return;
+    // }
+    // // @ts-ignore
+    // const scaleX = this.clippingPath._filterScalingX;
+    // // @ts-ignore
+    // const scaleY = this.clippingPath._filterScalingY;
+    // const w = this.clippingPath.width;
+    // const h = this.clippingPath.height;
+    // // crop values cannot be lesser than 0.
+    // const cropX = Math.max(this.cropX, 0);
+    // const cropY = Math.max(this.cropY, 0);
+    // // const cropY = this.cropY
+    // // console.log(cropY, 'cropY');
+    // // @ts-ignore
+    // const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
+    // // @ts-ignore
+    // const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
+    // const sX = cropX * scaleX;
+    // const sY = cropY * scaleY;
+    // // the width height cannot exceed element width/height, starting from the crop offset.
+    // const sW = Math.min(w * scaleX, elWidth - sX);
+    // const sH = Math.min(h * scaleY, elHeight - sY);
+    // const x = -w / 2;
+    // const y = -h / 2;
+    // const maxDestW = Math.min(w, elWidth / scaleX - cropX);
+    // const maxDestH = Math.min(h, elHeight / scaleY - cropY);
+    // // console.log(sX, sY, sW, sH, x, y, maxDestW, maxDestH, 'sX, sY, sW, sH, x, y, maxDestW, maxDestH');
+    // elementToDraw &&
+    //   ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
     // ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
     // const { width } = this;
     // const { height } = this;
@@ -60392,8 +60447,8 @@ var EditorTextbox = /** @class */function (_super) {
     console.log(point1, 'point1');
     var point2 = clippingPath.getPointByOrigin(clippingPath.originX, clippingPath.originY);
     console.log(point2, 'point2');
-    var cropX = point2.x - point1.x || 0;
-    var cropY = point2.y - point1.y || 0;
+    var cropX = point1.x - point2.x || 0;
+    var cropY = point1.y - point2.y || 0;
     console.log(cropX, 'cropX');
     console.log(cropY, 'cropY');
     // const width = clippingPath.getScaledWidth();

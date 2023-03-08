@@ -557,20 +557,45 @@ function scaleObjectCrop1(
     scaleProportionally = scaleIsProportional(eventData, target),
     forbidScaling = scalingIsForbidden(target, by, scaleProportionally);
   let newPoint, scaleX, scaleY, dim, signX, signY;
-  console.log(original, 'original');
   if (forbidScaling) {
     return false;
   }
   // @ts-ignore
+  const fullWidth = target.clippingPath.getOriginalElementWidth();
+  // @ts-ignore
+  const fullHeight = target.clippingPath.getOriginalElementHeight();
+  // @ts-ignore
+  const remainderX = fullWidth - target.clippingPath.width - target.cropX;
+  // @ts-ignore
+  const remainderY = fullHeight - target.clippingPath.height - target.cropY;
+   // @ts-ignore
+  const anchorOriginX = 1 + (remainderX / target.clippingPath.width);
+  // @ts-ignore
+  const anchorOriginY = 1 + (remainderY / target.clippingPath.height);
+
+  // @ts-ignore
+  const anchorOriginX1 = target.cropX / target.clippingPath.width;
+  // @ts-ignore
+  const anchorOriginY1 = target.cropY / target.clippingPath.height;
+
+  console.log(anchorOriginX, 'anchorOriginX');
+  console.log(anchorOriginY, 'anchorOriginY');
+
+  console.log(anchorOriginX1, 'anchorOriginX1');
+  console.log(anchorOriginY1, 'anchorOriginY1');
+
+  // @ts-ignore
   const centerPoint = target.clippingPath.getRelativeCenterPoint();
   // @ts-ignore
-  const constraint = target.clippingPath.translateToOriginPoint(centerPoint, transform.originX, transform.originY);
+  const constraint = target.clippingPath.translateToOriginPoint(centerPoint, anchorOriginX1, anchorOriginY1);
   if (transform.gestureScale) {
     scaleX = transform.scaleX * transform.gestureScale;
     scaleY = transform.scaleY * transform.gestureScale;
   } else {
     // newPoint = normalizePoint(target.pattern, new fabric.Point(x, y), transform.originX, transform.originY);
-    newPoint = getPatternLocalPoint(transform, transform.originX, transform.originY, x, y);
+    // newPoint = getPatternLocalPoint(transform, transform.originX, transform.originY, x, y);
+    // @ts-ignore
+    newPoint = normalizePoint(target.clippingPath, new fabric.Point(x, y), transform.originX, transform.originY);
     signX = by !== 'y' ? Math.sign(newPoint.x || transform.signX || 1) : 1;
     signY = by !== 'x' ? Math.sign(newPoint.y || transform.signY || 1) : 1;
     if (!transform.signX) {
@@ -631,48 +656,90 @@ function scaleObjectCrop1(
   // @ts-ignore
   const oldScaleY = target.clippingPath.scaleY;
 
-  // const corner = target.__corner;
-  // const originPattern = transform.original.clippingPath;
-  // let lockMinScaleY = false;
-  // let lockMinScaleX = false;
+  const corner = target.__corner;
+  const originClippingPath = transform.original.clippingPath;
+  let lockMinScaleY = false;
+  let lockMinScaleX = false;
 
-  // if (corner && originPattern && originPattern.minScale && originPattern.minScale[corner]) {
-  //   const scale = originPattern.minScale[corner];
-  //   lockMinScaleX = scaleX < scale.scaleX;
-  //   lockMinScaleY = scaleY < scale.scaleY;
-  //   if (lockMinScaleX) {
-  //     scaleX = scale.scaleX;
-  //   }
-  //   if (lockMinScaleY) {
-  //     scaleY = scale.scaleY;
-  //   }
-  // }
+   // @ts-ignore
+  if (corner && originClippingPath && originClippingPath.minScale && originClippingPath.minScale[corner]) {
+     // @ts-ignore
+    const scale = originClippingPath.minScale[corner];
+    lockMinScaleX = scaleX < scale.scaleX;
+    lockMinScaleY = scaleY < scale.scaleY;
+    if (lockMinScaleX) {
+      scaleX = scale.scaleX;
+    }
+    if (lockMinScaleY) {
+      scaleY = scale.scaleY;
+    }
+  }
+  // console.log(scaleX, 'scaleX')
+  // console.log(scaleY, 'scaleY')
 
-  // if (!by) {
-  //   // @ts-ignore
-  //   !isLocked(target, 'lockScalingX') && !lockMinScaleY && target.clippingPath.set('scaleX', scaleX);
-  //   // @ts-ignore
-  //   !isLocked(target, 'lockScalingY') && !lockMinScaleX && target.clippingPath.set('scaleY', scaleY);
-  // } else {
-  //   // forbidden cases already handled on top here.
-  //   // @ts-ignore
-  //   by === 'x' && target.clippingPath.set('scaleX', scaleX);
-  //   // @ts-ignore
-  //   by === 'y' && target.clippingPath.set('scaleY', scaleY);
-  // }
+  const scaleChangeX = scaleX / oldScaleX;
+  const scaleChangeY = scaleY / oldScaleY;
+  const scaledRemainderX = remainderX / scaleChangeX;
+  const scaledRemainderY = remainderY / scaleChangeY;
+  // @ts-ignore
+  const newWidth = target.clippingPath.width / scaleChangeX;
+  // @ts-ignore
+  const newHeight = target.clippingPath.height / scaleChangeY;
+  const newCropX = fullWidth - newWidth - scaledRemainderX;
+  const newCropY = fullHeight - newHeight - scaledRemainderY;
+
+  if (!by) {
+    // @ts-ignore
+    !isLocked(target, 'lockScalingX') && !lockMinScaleY && target.clippingPath.set('scaleX', scaleX);
+    // @ts-ignore
+    !isLocked(target, 'lockScalingY') && !lockMinScaleX && target.clippingPath.set('scaleY', scaleY);
+  } else {
+    // forbidden cases already handled on top here.
+    // @ts-ignore
+    by === 'x' && target.clippingPath.set('scaleX', scaleX);
+    // @ts-ignore
+    by === 'y' && target.clippingPath.set('scaleY', scaleY);
+  }
 
   // @ts-ignore
-  // target.clippingPath.setPositionByOrigin(constraint, transform.originX, transform.originY);
+  target.cropX = newCropX;
+  // @ts-ignore
+  target.cropY = newCropY;
 
-  // const centerPattern = target.pattern.getRelativeCenterPoint();
+  // console.log(scaleX, 'scaleX');
+  // console.log(scaleY, 'scaleY');
+  //  // @ts-ignore
+  // target.clippingPath.set('scaleX', scaleX);
+  //  // @ts-ignore
+  // target.clippingPath.set('scaleY', scaleY)
+
+  const newAnchorOriginX = 1 + (scaledRemainderX / newWidth);
+  const newAnchorOriginY = 1 + (scaledRemainderY / newHeight);
+
+  // console.log(transform.originX, 'transform.originX');
+  // console.log(transform.originY, 'transform.originY');
+  console.log(constraint, 'constraint');
+
+  // @ts-ignore
+  target.clippingPath.setPositionByOrigin(constraint, transform.originX, transform.originY);
+   // @ts-ignore
+  console.log(target.clippingPath.top, 'top');
+   // @ts-ignore
+  console.log(target.clippingPath.left, 'left');
+  // @ts-ignore
+  // const centerPattern = target.clippingPath.getRelativeCenterPoint();
   // const center = {
-  //   x: original.pattern.center.x - centerPattern.x,
-  //   y: original.pattern.center.y - centerPattern.y,
+  //   // @ts-ignore
+  //   x: original.clippingPath.center.x - centerPattern.x,
+  //   // @ts-ignore
+  //   y: original.clippingPath.center.y - centerPattern.y,
   // };
   // const angleRadians = fabric.util.degreesToRadians(-target.angle);
   // const pointCenter = new fabric.Point(center.x, center.y);
   // const point = fabric.util.rotateVector(pointCenter, angleRadians);
+  // // @ts-ignore
   // target.cropX = original.cropX + point.x;
+  // // @ts-ignore
   // target.cropY = original.cropY + point.y;
   // const widthPattern = target.pattern.getScaledWidth();
   // const heightPattern = target.pattern.getScaledHeight();

@@ -152,50 +152,45 @@ var EditorTextbox = /** @class */ (function (_super) {
         // this._renderTextDecoration(ctx, 'overline');
         // this._renderTextDecoration(ctx, 'linethrough');
         ctxToDraw.restore();
-        // ctxToDraw.save();
-        // this.transform(ctxToDraw);
-        // this._render(ctxToDraw);
-        // ctxToDraw.restore();
-        // ctxToDraw.save();
-        // // this.clippingPath.transform(ctxToDraw);
-        // // ctxToDraw.globalCompositeOperation = 'source-atop';
-        // ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
-        // this.clippingPath._render(ctxToDraw);
-        // ctxToDraw.restore();
         ctxToDraw.save();
-        ctxToDraw.globalCompositeOperation = 'source-atop';
+        // ctxToDraw.globalCompositeOperation = 'source-atop';
         ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
-        var elementToDraw = this.clippingPath.getElement();
-        if (!elementToDraw) {
-            return;
-        }
-        // @ts-ignore
-        var scaleX = this.clippingPath._filterScalingX;
-        // @ts-ignore
-        var scaleY = this.clippingPath._filterScalingY;
-        var w = this.clippingPath.width;
-        var h = this.clippingPath.height;
-        // crop values cannot be lesser than 0.
-        var cropX = Math.max(this.cropX, 0);
-        var cropY = Math.max(this.cropY, 0);
-        // const cropY = this.cropY
-        // console.log(cropY, 'cropY');
-        // @ts-ignore
-        var elWidth = elementToDraw.naturalWidth || elementToDraw.width;
-        // @ts-ignore
-        var elHeight = elementToDraw.naturalHeight || elementToDraw.height;
-        var sX = cropX * scaleX;
-        var sY = cropY * scaleY;
-        // the width height cannot exceed element width/height, starting from the crop offset.
-        var sW = Math.min(w * scaleX, elWidth - sX);
-        var sH = Math.min(h * scaleY, elHeight - sY);
-        var x = -w / 2;
-        var y = -h / 2;
-        var maxDestW = Math.min(w, elWidth / scaleX - cropX);
-        var maxDestH = Math.min(h, elHeight / scaleY - cropY);
-        // console.log(sX, sY, sW, sH, x, y, maxDestW, maxDestH, 'sX, sY, sW, sH, x, y, maxDestW, maxDestH');
-        elementToDraw &&
-            ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
+        this.clippingPath._render(ctxToDraw);
+        ctxToDraw.restore();
+        // ctxToDraw.save();
+        // ctxToDraw.globalCompositeOperation = 'source-atop';
+        // ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
+        // const elementToDraw = this.clippingPath.getElement();
+        // if (!elementToDraw) {
+        //   return;
+        // }
+        // // @ts-ignore
+        // const scaleX = this.clippingPath._filterScalingX;
+        // // @ts-ignore
+        // const scaleY = this.clippingPath._filterScalingY;
+        // const w = this.clippingPath.width;
+        // const h = this.clippingPath.height;
+        // // crop values cannot be lesser than 0.
+        // const cropX = Math.max(this.cropX, 0);
+        // const cropY = Math.max(this.cropY, 0);
+        // // const cropY = this.cropY
+        // // console.log(cropY, 'cropY');
+        // // @ts-ignore
+        // const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
+        // // @ts-ignore
+        // const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
+        // const sX = cropX * scaleX;
+        // const sY = cropY * scaleY;
+        // // the width height cannot exceed element width/height, starting from the crop offset.
+        // const sW = Math.min(w * scaleX, elWidth - sX);
+        // const sH = Math.min(h * scaleY, elHeight - sY);
+        // const x = -w / 2;
+        // const y = -h / 2;
+        // const maxDestW = Math.min(w, elWidth / scaleX - cropX);
+        // const maxDestH = Math.min(h, elHeight / scaleY - cropY);
+        // // console.log(sX, sY, sW, sH, x, y, maxDestW, maxDestH, 'sX, sY, sW, sH, x, y, maxDestW, maxDestH');
+        // elementToDraw &&
+        //   ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
         // ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
         // const { width } = this;
         // const { height } = this;
@@ -255,8 +250,8 @@ var EditorTextbox = /** @class */ (function (_super) {
         console.log(point1, 'point1');
         var point2 = clippingPath.getPointByOrigin(clippingPath.originX, clippingPath.originY);
         console.log(point2, 'point2');
-        var cropX = (point2.x - point1.x) || 0;
-        var cropY = (point2.y - point1.y) || 0;
+        var cropX = (point1.x - point2.x) || 0;
+        var cropY = (point1.y - point2.y) || 0;
         console.log(cropX, 'cropX');
         console.log(cropY, 'cropY');
         // const width = clippingPath.getScaledWidth();
