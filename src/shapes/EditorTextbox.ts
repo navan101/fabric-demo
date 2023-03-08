@@ -204,7 +204,7 @@ export class EditorTextbox extends fabric.Textbox {
     // @ts-ignore
     const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
     // @ts-ignore
-    const elHeight = elementToDraw.naturalHeight || elementToDraw.height,
+    const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
     const sX = cropX * scaleX;
     const sY = cropY * scaleY;
     // the width height cannot exceed element width/height, starting from the crop offset.
