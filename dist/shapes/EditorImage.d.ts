@@ -8,6 +8,7 @@ export declare class EditorImage extends fabric.Image {
     getOriginalElementHeight(): any;
     getElementWidth(): any;
     getElementHeight(): any;
+    _getOriginalTransformedDimensions(options?: any): fabric.Point;
     _render(ctx: CanvasRenderingContext2D): void;
     drawBorders(ctx: CanvasRenderingContext2D, options: any, styleOverride: any): void;
     _renderCroppingBorders(ctx: CanvasRenderingContext2D): void;

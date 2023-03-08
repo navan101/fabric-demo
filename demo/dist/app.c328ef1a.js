@@ -55935,6 +55935,38 @@ var EditorImage = /** @class */function (_super) {
     // @ts-ignore
     return this._element ? this._element.naturalHeight || this._element.height : 0;
   };
+  EditorImage.prototype._getOriginalTransformedDimensions = function (options) {
+    if (options === void 0) {
+      options = {};
+    }
+    var dimOptions = __assign({
+      scaleX: this.scaleX,
+      scaleY: this.scaleY,
+      skewX: this.skewX,
+      skewY: this.skewY,
+      width: this.getOriginalElementWidth(),
+      height: this.getOriginalElementHeight(),
+      strokeWidth: this.strokeWidth
+    }, options);
+    // stroke is applied before/after transformations are applied according to `strokeUniform`
+    var strokeWidth = dimOptions.strokeWidth;
+    var preScalingStrokeValue = strokeWidth,
+      postScalingStrokeValue = 0;
+    if (this.strokeUniform) {
+      preScalingStrokeValue = 0;
+      postScalingStrokeValue = strokeWidth;
+    }
+    var dimX = dimOptions.width + preScalingStrokeValue,
+      dimY = dimOptions.height + preScalingStrokeValue,
+      noSkew = dimOptions.skewX === 0 && dimOptions.skewY === 0;
+    var finalDimensions;
+    if (noSkew) {
+      finalDimensions = new fabric.Point(dimX * dimOptions.scaleX, dimY * dimOptions.scaleY);
+    } else {
+      finalDimensions = fabric.util.sizeAfterTransform(dimX, dimY, dimOptions);
+    }
+    return finalDimensions.scalarAdd(postScalingStrokeValue);
+  };
   EditorImage.prototype._render = function (ctx) {
     // ctx can be either the cacheCtx or the main ctx.
     // we want to disable shadow on the main one since on the cache the shadow is never set.
@@ -56949,6 +56981,9 @@ function scaleObjectMR(eventData, transform, x, y, options) {
         original = transform.original,
         originalDistance = Math.abs(dim.x * original.scaleX / target.scaleX) + Math.abs(dim.y * original.scaleY / target.scaleY),
         scale = distance / originalDistance;
+      console.log(scale, 'scale');
+      console.log(original.scaleX, 'original.scaleX');
+      console.log(target.scaleX, 'target.scaleX');
       scaleX = original.scaleX * scale;
       scaleY = original.scaleY * scale;
     } else {
@@ -56975,27 +57010,38 @@ function scaleObjectMR(eventData, transform, x, y, options) {
   var oldScaleX = target.scaleX;
   var oldScaleY = target.scaleY;
   var scaleChangeX = scaleX / oldScaleX;
-  var scaleChangeY = scaleX / oldScaleX;
+  var scaleChangeY = scaleX / oldScaleY;
   // @ts-ignore
   target.clippingPath.set('width', target.width * scaleX);
   // @ts-ignore
   if (target.clippingPath.dynamicMinWidth >= target.clippingPath.width) {
     return oldScaleX !== target.scaleX || oldScaleY !== target.scaleY;
   }
-  if (!by) {
-    !(0, _util.isLocked)(target, 'lockScalingX') && target.set('scaleX', scaleX);
-    !(0, _util.isLocked)(target, 'lockScalingY') && target.set('scaleY', scaleY);
-  } else {
-    // forbidden cases already handled on top here.
-    by === 'x' && target.set('scaleX', scaleX);
-    by === 'y' && target.set('scaleY', scaleY);
-  }
-  // @ts-ignore
-  // target.set('height', target.clippingPath.height / target.scaleY);
+  target.set({
+    scaleX: scaleX,
+    scaleY: scaleX
+  });
   // @ts-ignore
   target.clippingPath.scaleX /= scaleChangeX;
   // @ts-ignore
   target.clippingPath.scaleY /= scaleChangeY;
+  // @ts-ignore
+  console.log(target.clippingPath.sHeight, target.clippingPath.height, 'target.clippingPath.sHeight');
+  // @ts-ignore
+  target.set('height', (target.clippingPath.sHeight || target.clippingPath.height) / target.scaleY);
+  // @ts-ignore
+  // if (!by) {
+  //   !isLocked(target, 'lockScalingX') && target.set('scaleX', scaleX);
+  //   !isLocked(target, 'lockScalingY') && target.set('scaleY', scaleY);
+  // } else {
+  //   // forbidden cases already handled on top here.
+  //   by === 'x' && target.set('scaleX', scaleX);
+  //   by === 'y' && target.set('scaleY', scaleY);
+  // }
+  // target.set({
+  //   scaleX,
+  //   scaleY: scaleX,
+  // })
   return oldScaleX !== target.scaleX || oldScaleY !== target.scaleY;
 }
 function scaleObjectML(eventData, transform, x, y, options) {
@@ -57118,17 +57164,163 @@ function scaleObjectML(eventData, transform, x, y, options) {
 var scaleObjectFromCorner = function (eventData, transform, x, y) {
   var corner = transform.corner;
   if (corner === 'mr') {
-    return scaleObjectMR(eventData, transform, x, y);
+    return scaleObjectMR(eventData, transform, x, y, {
+      by: 'x'
+    });
   } else {
     // return scaleObjectML(eventData, transform, x, y);
-    return scaleObjectMR(eventData, transform, x, y);
+    return scaleObjectMR(eventData, transform, x, y, {
+      by: 'x'
+    });
   }
 };
 var scalingEqually = fabric.controlsUtils.wrapWithFireEvent('resizing',
 // @ts-ignore
 fabric.controlsUtils.wrapWithFixedAnchor(scaleObjectFromCorner));
 exports.scalingEqually = scalingEqually;
-},{"fabric":"../node_modules/fabric/dist/index.mjs","../../controls/util":"node_modules/fabric-editor/controls/util.js"}],"node_modules/fabric-editor/controls/clipping-mask/clipping-mask.controls.js":[function(require,module,exports) {
+},{"fabric":"../node_modules/fabric/dist/index.mjs","../../controls/util":"node_modules/fabric-editor/controls/util.js"}],"node_modules/fabric-editor/controls/scale.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.scaleIsProportional = scaleIsProportional;
+exports.scalingEqually = exports.scaleObjectFromCorner = void 0;
+exports.scalingIsForbidden = scalingIsForbidden;
+var fabric = _interopRequireWildcard(require("fabric"));
+var _util = require("./util");
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+/**
+ * Inspect event and fabricObject properties to understand if the scaling action
+ * @param {Event} eventData from the user action
+ * @param {FabricObject} fabricObject the fabric object about to scale
+ * @return {Boolean} true if scale is proportional
+ */
+function scaleIsProportional(eventData, fabricObject) {
+  var canvas = fabricObject.canvas,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    uniformIsToggled = eventData[canvas.uniScaleKey];
+  return canvas.uniformScaling && !uniformIsToggled || !canvas.uniformScaling && uniformIsToggled;
+}
+/**
+ * Inspect fabricObject to understand if the current scaling action is allowed
+ * @param {FabricObject} fabricObject the fabric object about to scale
+ * @param {String} by 'x' or 'y' or ''
+ * @param {Boolean} scaleProportionally true if we are trying to scale proportionally
+ * @return {Boolean} true if scaling is not allowed at current conditions
+ */
+function scalingIsForbidden(fabricObject, by, scaleProportionally) {
+  var lockX = (0, _util.isLocked)(fabricObject, 'lockScalingX'),
+    lockY = (0, _util.isLocked)(fabricObject, 'lockScalingY');
+  if (lockX && lockY) {
+    return true;
+  }
+  if (!by && (lockX || lockY) && scaleProportionally) {
+    return true;
+  }
+  if (lockX && by === 'x') {
+    return true;
+  }
+  if (lockY && by === 'y') {
+    return true;
+  }
+  return false;
+}
+var scaleObjectFromCorner = function (eventData, transform, x, y) {
+  return scaleObject(eventData, transform, x, y);
+};
+exports.scaleObjectFromCorner = scaleObjectFromCorner;
+function scaleObject(eventData, transform, x, y, options) {
+  if (options === void 0) {
+    options = {};
+  }
+  var target = transform.target,
+    by = options.by,
+    scaleProportionally = scaleIsProportional(eventData, target),
+    forbidScaling = scalingIsForbidden(target, by, scaleProportionally);
+  var newPoint, scaleX, scaleY, dim, signX, signY;
+  if (forbidScaling) {
+    return false;
+  }
+  if (transform.gestureScale) {
+    scaleX = transform.scaleX * transform.gestureScale;
+    scaleY = transform.scaleY * transform.gestureScale;
+  } else {
+    newPoint = fabric.controlsUtils.getLocalPoint(
+    // @ts-ignore
+    transform, transform.originX, transform.originY, x, y);
+    // use of sign: We use sign to detect change of direction of an action. sign usually change when
+    // we cross the origin point with the mouse. So a scale flip for example. There is an issue when scaling
+    // by center and scaling using one middle control ( default: mr, mt, ml, mb), the mouse movement can easily
+    // cross many time the origin point and flip the object. so we need a way to filter out the noise.
+    // This ternary here should be ok to filter out X scaling when we want Y only and vice versa.
+    signX = by !== 'y' ? Math.sign(newPoint.x || transform.signX || 1) : 1;
+    signY = by !== 'x' ? Math.sign(newPoint.y || transform.signY || 1) : 1;
+    if (!transform.signX) {
+      transform.signX = signX;
+    }
+    if (!transform.signY) {
+      transform.signY = signY;
+    }
+    if ((0, _util.isLocked)(target, 'lockScalingFlip') && (transform.signX !== signX || transform.signY !== signY)) {
+      return false;
+    }
+    dim = target._getTransformedDimensions();
+    // missing detection of flip and logic to switch the origin
+    if (scaleProportionally && !by) {
+      // uniform scaling
+      var distance = Math.abs(newPoint.x) + Math.abs(newPoint.y),
+        original = transform.original,
+        originalDistance = Math.abs(dim.x * original.scaleX / target.scaleX) + Math.abs(dim.y * original.scaleY / target.scaleY),
+        scale = distance / originalDistance;
+      scaleX = original.scaleX * scale;
+      scaleY = original.scaleY * scale;
+    } else {
+      scaleX = Math.abs(newPoint.x * target.scaleX / dim.x);
+      scaleY = Math.abs(newPoint.y * target.scaleY / dim.y);
+    }
+    // if we are scaling by center, we need to double the scale
+    if ((0, _util.isTransformCentered)(transform)) {
+      scaleX *= 2;
+      scaleY *= 2;
+    }
+    if (transform.signX !== signX && by !== 'y') {
+      transform.originX = (0, _util.invertOrigin)(transform.originX);
+      scaleX *= -1;
+      transform.signX = signX;
+    }
+    if (transform.signY !== signY && by !== 'x') {
+      transform.originY = (0, _util.invertOrigin)(transform.originY);
+      scaleY *= -1;
+      transform.signY = signY;
+    }
+  }
+  // minScale is taken are in the setter.
+  var oldScaleX = target.scaleX;
+  var oldScaleY = target.scaleY;
+  var scaleChangeX = scaleX / oldScaleX;
+  var scaleChangeY = scaleX / oldScaleX;
+  if (!by) {
+    !(0, _util.isLocked)(target, 'lockScalingX') && target.set('scaleX', scaleX);
+    !(0, _util.isLocked)(target, 'lockScalingY') && target.set('scaleY', scaleY);
+  } else {
+    // forbidden cases already handled on top here.
+    by === 'x' && target.set('scaleX', scaleX);
+    by === 'y' && target.set('scaleY', scaleY);
+  }
+  // @ts-ignore
+  if (target.clippingPath) {
+    // @ts-ignore
+    target.clippingPath.sHeight = target.clippingPath.height * target.scaleY;
+  }
+  return oldScaleX !== target.scaleX || oldScaleY !== target.scaleY;
+}
+var scalingEqually = fabric.controlsUtils.wrapWithFireEvent('scaling',
+// @ts-ignore
+fabric.controlsUtils.wrapWithFixedAnchor(scaleObjectFromCorner));
+exports.scalingEqually = scalingEqually;
+},{"fabric":"../node_modules/fabric/dist/index.mjs","./util":"node_modules/fabric-editor/controls/util.js"}],"node_modules/fabric-editor/controls/clipping-mask/clipping-mask.controls.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -57138,6 +57330,7 @@ exports.imageControls = exports.flipYCropControls = exports.flipXYCropControls =
 var fabric = _interopRequireWildcard(require("fabric"));
 var _clippingMaskControls = require("./clipping-mask.controls.handlers");
 var _croppingControls = require("../cropping/cropping.controls.handlers");
+var _scale = require("../../controls/scale");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 var controls = fabric.Object.prototype.controls;
@@ -57158,7 +57351,13 @@ var _a = fabric.controlsUtils,
 // });
 var imageControls = {
   tl: controls.tl,
-  tr: controls.tr,
+  // tr: controls.tr,
+  tr: new fabric.Control({
+    x: 0.5,
+    y: -0.5,
+    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
+    actionHandler: _scale.scalingEqually
+  }),
   bl: controls.bl,
   br: controls.br,
   mtr: controls.mtr,
@@ -57391,7 +57590,7 @@ var flipXYCropControls = {
   })
 };
 exports.flipXYCropControls = flipXYCropControls;
-},{"fabric":"../node_modules/fabric/dist/index.mjs","./clipping-mask.controls.handlers":"node_modules/fabric-editor/controls/clipping-mask/clipping-mask.controls.handlers.js","../cropping/cropping.controls.handlers":"node_modules/fabric-editor/controls/cropping/cropping.controls.handlers.js"}],"node_modules/fabric-editor/mixins/clipping-mask.mixin.js":[function(require,module,exports) {
+},{"fabric":"../node_modules/fabric/dist/index.mjs","./clipping-mask.controls.handlers":"node_modules/fabric-editor/controls/clipping-mask/clipping-mask.controls.handlers.js","../cropping/cropping.controls.handlers":"node_modules/fabric-editor/controls/cropping/cropping.controls.handlers.js","../../controls/scale":"node_modules/fabric-editor/controls/scale.js"}],"node_modules/fabric-editor/mixins/clipping-mask.mixin.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -58065,7 +58264,12 @@ var EditorClippingMask = /** @class */function (_super) {
     if (this.clippingPath) {
       var _a = this,
         width = _a.width,
-        height = _a.height;
+        height = _a.height,
+        scaleX = _a.scaleX;
+      // console.log(width, 'width');
+      // console.log(scaleX, 'scaleX');
+      // console.log(width * scaleX, 'width * scaleX');
+      // console.log(this.clippingPath.width, 'this.clippingPath.width');
       var elementToDraw = this._elementToDraw;
       var clipPathScaleFactorX = this.clippingPath.scaleX;
       var clipPathScaleFactorY = this.clippingPath.scaleY;
@@ -58078,30 +58282,30 @@ var EditorClippingMask = /** @class */function (_super) {
       ctxClippingPath.translate(this.clippingPath.width / 2, this.clippingPath.height / 2);
       this.clippingPath._render(ctxClippingPath);
       ctxClippingPath.restore();
+      // console.log(ctxClippingPath.canvas.toDataURL());
       var canvasEl = fabric.util.createCanvasElement();
       canvasEl.width = this.clippingPath.getScaledWidth();
       canvasEl.height = this.clippingPath.getScaledHeight();
       var ctxEl = canvasEl.getContext('2d');
       ctxEl.save();
       // console.log(this.cropY, 'this.cropY')
+      // console.log(this.cropX, 'this.cropX');
       if (elementToDraw) {
-        // const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
-        // const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
-        // // ctxEl.scale((this.originalScaleX || this.scaleX), (this.originalScaleY || this.scaleY));
+        // ctxEl.save();
         // ctxEl.drawImage(
         //   elementToDraw,
         //   this.cropX,
         //   this.cropY,
-        //   Math.max(1, Math.floor(elWidth)),
-        //   Math.max(1, Math.floor(elHeight)),
+        //   Math.max(1, Math.floor(width)),
+        //   Math.max(1, Math.floor(height)),
         //   (canvasEl.width / 2 - width / 2),
         //   (canvasEl.height / 2 - height / 2),
-        //   Math.max(0, Math.floor(elWidth)),
-        //   Math.max(0, Math.floor(elHeight)),
+        //   Math.max(0, Math.floor(width)),
+        //   Math.max(0, Math.floor(height)),
         // );
         // ctxEl.restore();
         ctxEl.save();
-        var scaleX = this._filterScalingX;
+        var scaleX_1 = this._filterScalingX;
         var scaleY = this._filterScalingY;
         var w = this.width,
           h = this.height,
@@ -58110,16 +58314,16 @@ var EditorClippingMask = /** @class */function (_super) {
           cropY = Math.max(this.cropY, 0),
           elWidth = elementToDraw.naturalWidth || elementToDraw.width,
           elHeight = elementToDraw.naturalHeight || elementToDraw.height,
-          sX = cropX * scaleX,
+          sX = cropX * scaleX_1,
           sY = cropY * scaleY,
           // the width height cannot exceed element width/height, starting from the crop offset.
-          sW = Math.min(w * scaleX, elWidth - sX),
+          sW = Math.min(w * scaleX_1, elWidth - sX),
           sH = Math.min(h * scaleY, elHeight - sY),
           // x = -w / 2,
           // y = -h / 2,
           x = canvasEl.width / 2 - w / 2,
           y = canvasEl.height / 2 - h / 2,
-          maxDestW = Math.min(w, elWidth / scaleX - cropX),
+          maxDestW = Math.min(w, elWidth / scaleX_1 - cropX),
           maxDestH = Math.min(h, elHeight / scaleY - cropY);
         ctxEl.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
         ctxEl.restore();
@@ -58128,7 +58332,7 @@ var EditorClippingMask = /** @class */function (_super) {
       ctxEl.drawImage(ctxClippingPath.canvas, 0, 0);
       ctxEl.restore();
       // console.log(ctxEl.canvas.toDataURL(), 'ctxEl.canvas');
-      ctx.drawImage(ctxEl.canvas, -width / 2, -height / 2);
+      ctx.drawImage(ctxEl.canvas, -(ctxClippingPath.canvas.width / 2), -ctxClippingPath.canvas.height / 2);
     }
   };
   EditorClippingMask.prototype._renderClippingByImage = function (ctx) {
@@ -58746,9 +58950,32 @@ function cornerBL(dim, finalMatrix, fabricObject) {
   };
   return fabric.util.transformPoint(point, _finalMatrix);
 }
+// function scaleEquallyCrop(
+//   eventData: TPointerEvent,
+//   transform: ScaleTransform,
+//   x: number,
+//   y: number,
+// ) {
+//   return scaleObjectCrop(eventData, transform, x, y);
+// }
 function scaleEquallyCrop(eventData, transform, x, y) {
-  return scaleObjectCrop(eventData, transform, x, y);
+  var corner = transform.corner;
+  if (corner === 'tlS') {
+    return scaleObjectCrop(eventData, transform, x, y);
+  } else {
+    return scaleObjectCropTL(eventData, transform, x, y);
+  }
+  // if (corner === 'trS') {
+  //   return scaleObjectCropTR(eventData, transform, x, y);
+  // }
+  // if (corner === 'brS') {
+  //   return scaleObjectCropBR(eventData, transform, x, y);
+  // }
+  // if (corner === 'blS') {
+  //   return scaleObjectCropBL(eventData, transform, x, y);
+  // }
 }
+
 function scalingXCrop(eventData, transform, x, y) {
   return scaleObjectCrop(eventData, transform, x, y, {
     by: 'x'
@@ -58880,8 +59107,8 @@ function scaleEquallyCropTL(eventData, transform, x, y) {
   var anchorOriginX = 1 + remainderX / target.clippingPath.width;
   var anchorOriginY = 1 + remainderY / target.clippingPath.height;
   var centerPoint = target.clippingPath.getRelativeCenterPoint();
-  var constraint = target.clippingPath.translateToOriginPoint(centerPoint, transform.originX, transform.originY);
-  var newPoint = (0, _util.normalizePoint)(target.clippingPath, new fabric.Point(x, y), transform.originX, transform.originY);
+  var constraint = target.clippingPath.translateToOriginPoint(centerPoint, anchorOriginX, anchorOriginY);
+  var newPoint = (0, _util.normalizePoint)(target.clippingPath, new fabric.Point(x, y), anchorOriginX, anchorOriginY);
   // const newPoint = fabric.controlsUtils.getLocalPoint(transform, transform.originX, transform.originY, x, y);
   var scale = (0, _croppingControls.calcScale)(newPoint, fullHeight, fullWidth, target.flipX, target.flipY);
   var oldScaleX = target.clippingPath.scaleX;
@@ -58894,9 +59121,9 @@ function scaleEquallyCropTL(eventData, transform, x, y) {
   var newHeight = target.clippingPath.height / scaleChangeY;
   var newCropX = fullWidth - newWidth - scaledRemainderX;
   var newCropY = fullHeight - newHeight - scaledRemainderY;
-  if (newWidth + scaledRemainderX > fullWidth || newHeight + scaledRemainderY > fullHeight) {
-    return false;
-  }
+  // if (newWidth + scaledRemainderX > fullWidth || newHeight + scaledRemainderY > fullHeight) {
+  //   return false;
+  // }
   target.clippingPath.scaleX = scale;
   target.clippingPath.scaleY = scale;
   // target.clippingPath.width = newWidth;
@@ -58907,10 +59134,105 @@ function scaleEquallyCropTL(eventData, transform, x, y) {
   //   target.clippingPath.scaleX /= scaleChangeX;
   //   target.clippingPath.scaleY /= scaleChangeY;
   // }
-  // const newAnchorOriginX = 1 + (scaledRemainderX / newWidth);
-  // const newAnchorOriginY = 1 + (scaledRemainderY / newHeight);
-  target.clippingPath.setPositionByOrigin(constraint, transform.originX, transform.originY);
+  var newAnchorOriginX = 1 + scaledRemainderX / newWidth;
+  var newAnchorOriginY = 1 + scaledRemainderY / newHeight;
+  target.clippingPath.setPositionByOrigin(constraint, newAnchorOriginX, newAnchorOriginY);
   // target.clippingPath.setPositionByOrigin(constraint, newAnchorOriginX, newAnchorOriginY);
+  return true;
+}
+function scaleObjectCropTL(eventData, transform, x, y, options) {
+  if (options === void 0) {
+    options = {};
+  }
+  var target = transform.target,
+    by = options.by,
+    original = transform.original,
+    scaleProportionally = scaleIsProportional(eventData, target);
+  var forbidScaling = scalingIsForbidden(target, by, scaleProportionally);
+  var newPoint, scaleX, scaleY, dim, signX, signY;
+  if (forbidScaling) {
+    return false;
+  }
+  var fullWidth = target.getOriginalElementWidth();
+  var fullHeight = target.getOriginalElementHeight();
+  var remainderX = fullWidth - target.width - target.cropX;
+  var remainderY = fullHeight - target.height - target.cropY;
+  var anchorOriginX = 1 + remainderX / target.width;
+  var anchorOriginY = 1 + remainderY / target.height;
+  var centerPoint = target.getRelativeCenterPoint();
+  var constraint = target.translateToOriginPoint(centerPoint, anchorOriginX, anchorOriginY);
+  if (transform.gestureScale) {
+    scaleX = transform.scaleX * transform.gestureScale;
+    scaleY = transform.scaleY * transform.gestureScale;
+  } else {
+    newPoint = (0, _util.normalizePoint)(target, new fabric.Point(x, y), anchorOriginX, anchorOriginY);
+    signX = by !== 'y' ? Math.sign(newPoint.x || transform.signX || 1) : 1;
+    signY = by !== 'x' ? Math.sign(newPoint.y || transform.signY || 1) : 1;
+    if (!transform.signX) {
+      transform.signX = signX;
+    }
+    if (!transform.signY) {
+      transform.signY = signY;
+    }
+    if ((0, _util.isLocked)(target, 'lockScalingFlip') && (transform.signX !== signX || transform.signY !== signY)) {
+      return false;
+    }
+    dim = target._getOriginalTransformedDimensions();
+    // missing detection of flip and logic to switch the origin
+    if (scaleProportionally && !by) {
+      // uniform scaling
+      var distance = Math.abs(newPoint.x) + Math.abs(newPoint.y),
+        original_1 = transform.original,
+        originalDistance = Math.abs(dim.x * original_1.scaleX / target.scaleX) + Math.abs(dim.y * original_1.scaleY / target.scaleY),
+        scale = distance / originalDistance;
+      scaleX = original_1.scaleX * scale;
+      scaleY = original_1.scaleY * scale;
+    } else {
+      scaleX = Math.abs(newPoint.x * target.scaleX / dim.x);
+      scaleY = Math.abs(newPoint.y * target.scaleY / dim.y);
+    }
+    // if we are scaling by center, we need to double the scale
+    if ((0, _util.isTransformCentered)(transform)) {
+      scaleX *= 2;
+      scaleY *= 2;
+    }
+    if (transform.signX !== signX && by !== 'y') {
+      transform.originX = (0, _util.invertOrigin)(transform.originX);
+      scaleX *= -1;
+      transform.signX = signX;
+    }
+    if (transform.signY !== signY && by !== 'x') {
+      transform.originY = (0, _util.invertOrigin)(transform.originY);
+      scaleY *= -1;
+      transform.signY = signY;
+    }
+  }
+  var oldScaleX = target.scaleX;
+  var oldScaleY = target.scaleY;
+  var scaleChangeX = scaleX / oldScaleX;
+  var scaleChangeY = scaleY / oldScaleY;
+  var scaledRemainderX = remainderX / scaleChangeX;
+  var scaledRemainderY = remainderY / scaleChangeY;
+  var newWidth = target.width / scaleChangeX;
+  var newHeight = target.height / scaleChangeY;
+  var newCropX = fullWidth - newWidth - scaledRemainderX;
+  var newCropY = fullHeight - newHeight - scaledRemainderY;
+  if (newWidth + scaledRemainderX > fullWidth || newHeight + scaledRemainderY > fullHeight) {
+    return false;
+  }
+  target.scaleX = scaleX;
+  target.scaleY = scaleY;
+  target.width = newWidth;
+  target.height = newHeight;
+  target.cropX = newCropX;
+  target.cropY = newCropY;
+  if (target.clippingPath) {
+    target.clippingPath.scaleX /= scaleChangeX;
+    target.clippingPath.scaleY /= scaleChangeY;
+  }
+  var newAnchorOriginX = 1 + scaledRemainderX / newWidth;
+  var newAnchorOriginY = 1 + scaledRemainderY / newHeight;
+  target.setPositionByOrigin(constraint, newAnchorOriginX, newAnchorOriginY);
   return true;
 }
 function editClippingTextHandler(eventData, transform) {
@@ -59577,6 +59899,7 @@ function extendWithClippingText(EditorClippingText) {
       }
       this.__isClipping = value;
       if (value) {
+        this.objectCaching = false;
         // defaultCursor = fabricCanvas.defaultCursor;
         // fabricCanvas.defaultCursor = 'move';
         // handle crop mode enter
@@ -59587,7 +59910,7 @@ function extendWithClippingText(EditorClippingText) {
         // will be restored when we exit crop mode.
         // this.strokeWidth = 0;
         this.setupDragMatrix();
-        // this.bindCropModeHandlers();
+        this.bindCropModeHandlers();
         // after changing padding we have to recalculate corner positions
         this.controls = _clippingText.cropControls;
         // if (this.flipX && !this.flipY) {
@@ -59619,6 +59942,7 @@ function extendWithClippingText(EditorClippingText) {
         fabricCanvas.altActionKey = 'none';
         fabricCanvas.selection = false;
       } else {
+        this.objectCaching = true;
         // fabricCanvas.defaultCursor = defaultCursor;
         // restore properties from before crop
         (0, _cropping.unisolateObjectForEdit)(this);
@@ -59672,8 +59996,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.textboxDefaultValues = exports.EditorTextbox = void 0;
+var _clippingText = require("../controls/clipping-text-1/clipping-text.controls");
 var fabric = _interopRequireWildcard(require("fabric"));
-var _clippingText = require("../mixins/clipping-text-1.mixin");
+var _clippingText2 = require("../mixins/clipping-text-1.mixin");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 var __extends = void 0 && (void 0).__extends || function () {
@@ -59706,82 +60031,8 @@ var __assign = void 0 && (void 0).__assign || function () {
   };
   return __assign.apply(this, arguments);
 };
-var CorjlText = {
-  _measureText: function (font, text, fontSize) {
-    var _a = font.tables.head,
-      yMax = _a.yMax,
-      yMin = _a.yMin,
-      xMax = _a.xMax,
-      xMin = _a.xMin;
-    var scale = 1 / font.unitsPerEm * fontSize;
-    return {
-      yMax: yMax * scale,
-      yMin: yMin * scale,
-      xMax: xMax * scale,
-      xMin: xMin * scale
-    };
-  },
-  _getCacheCanvasDimensions: function () {
-    var fontHeight = 0;
-    var fontWidth = 0;
-    if (this.fontload) {
-      var font = this.fontload();
-      var metrics = this._measureText(font, this.text, this.fontSize);
-      fontHeight = metrics.yMax - metrics.yMin;
-      fontWidth = metrics.xMax - metrics.xMin;
-    }
-    var dims = fabric.Object.prototype._getCacheCanvasDimensions.call(this);
-    var extendSize = this.strokeWidth || 0;
-    var fontSize = this.fontSize;
-    dims.width += (fontSize + fontWidth) * dims.zoomX + extendSize;
-    dims.height += (fontSize + fontHeight) * dims.zoomY + extendSize;
-    return dims;
-  }
-};
-// extend(fabric.Text.prototype, CorjlText);
-// fabric.Object.prototype._getTransformedDimensions = function (options: any = {}): fabric.Point {
-//   const dimOptions = {
-//     scaleX: this.scaleX,
-//     scaleY: this.scaleY,
-//     skewX: this.skewX,
-//     skewY: this.skewY,
-//     width: this.width,
-//     height: this.height,
-//     // @ts-ignore
-//     // width: this.isClipping && this.clippingPath ? (this.clippingPath.width * this.clippingPath.scaleX) : this.width,
-//     // width: this.clippingPath ? (this.clippingPath.width * this.clippingPath.scaleX) : this.width,
-//     // @ts-ignore
-//     // height: this.isClipping && this.clippingPath ? (this.clippingPath.height * this.clippingPath.scaleY) : this.height,
-//     // height: this.clippingPath ? (this.clippingPath.height * this.clippingPath.scaleY) : this.height,
-//     strokeWidth: this.strokeWidth,
-//     ...options,
-//   };
-//   // stroke is applied before/after transformations are applied according to `strokeUniform`
-//   const strokeWidth = dimOptions.strokeWidth;
-//   let preScalingStrokeValue = strokeWidth,
-//     postScalingStrokeValue = 0;
-//   if (this.strokeUniform) {
-//     preScalingStrokeValue = 0;
-//     postScalingStrokeValue = strokeWidth;
-//   }
-//   const dimX = dimOptions.width + preScalingStrokeValue,
-//     dimY = dimOptions.height + preScalingStrokeValue,
-//     noSkew = dimOptions.skewX === 0 && dimOptions.skewY === 0;
-//   let finalDimensions;
-//   if (noSkew) {
-//     finalDimensions = new fabric.Point(
-//       dimX * dimOptions.scaleX,
-//       dimY * dimOptions.scaleY
-//     );
-//   } else {
-//     finalDimensions = fabric.util.sizeAfterTransform(dimX, dimY, dimOptions);
-//   }
-//   return finalDimensions.scalarAdd(postScalingStrokeValue);
-// }
 var EditorTextbox = /** @class */function (_super) {
   __extends(EditorTextbox, _super);
-  // controls = defaultControls;
-  // objectCaching = true;
   function EditorTextbox(text, options) {
     var _this = this;
     var _a;
@@ -59789,6 +60040,8 @@ var EditorTextbox = /** @class */function (_super) {
     _this.cropOpacity = 0.5;
     _this.stateProperties = (_a = fabric.Textbox.prototype.stateProperties) === null || _a === void 0 ? void 0 : _a.concat('clippingPath', 'isClipping', 'cropX', 'cropY');
     _this.cacheProperties = fabric.Textbox.prototype.cacheProperties.concat('clippingPath', 'isClipping', 'cropX', 'cropY');
+    _this.controls = _clippingText.defaultControls;
+    _this.objectCaching = true;
     return _this;
     // this.on('resizing', (event: any) => {
     //   const { transform } = event;
@@ -59839,10 +60092,9 @@ var EditorTextbox = /** @class */function (_super) {
     //   fabricObject.clippingPath.setCoords();
     // });
   }
-
-  EditorTextbox.prototype.render = function (ctx) {
-    _super.prototype.render.call(this, ctx);
-  };
+  // render(ctx: CanvasRenderingContext2D) {
+  //   super.render(ctx);
+  // }
   EditorTextbox.prototype._render = function (ctx) {
     _super.prototype._render.call(this, ctx);
     // this._renderClippingBackground(ctx);
@@ -59870,9 +60122,11 @@ var EditorTextbox = /** @class */function (_super) {
     }
   };
   EditorTextbox.prototype._renderClippingText = function (ctx) {
+    // console.log(this.clippingPath, 'this.clippingPath');
     if (!this.clippingPath || this.isNotVisible()) {
       return;
     }
+    // console.log(this.clippingPath, 'this.clippingPath');
     var clipPathScaleFactorX = this.clippingPath.scaleX;
     var clipPathScaleFactorY = this.clippingPath.scaleY;
     if (!this._cacheClippingPathCanvas) {
@@ -59927,7 +60181,7 @@ var EditorTextbox = /** @class */function (_super) {
     var cropX = Math.max(this.cropX, 0);
     var cropY = Math.max(this.cropY, 0);
     // const cropY = this.cropY
-    console.log(cropY, 'cropY');
+    // console.log(cropY, 'cropY');
     // @ts-ignore
     var elWidth = elementToDraw.naturalWidth || elementToDraw.width;
     // @ts-ignore
@@ -59941,7 +60195,7 @@ var EditorTextbox = /** @class */function (_super) {
     var y = -h / 2;
     var maxDestW = Math.min(w, elWidth / scaleX - cropX);
     var maxDestH = Math.min(h, elHeight / scaleY - cropY);
-    console.log(sX, sY, sW, sH, x, y, maxDestW, maxDestH, 'sX, sY, sW, sH, x, y, maxDestW, maxDestH');
+    // console.log(sX, sY, sW, sH, x, y, maxDestW, maxDestH, 'sX, sY, sW, sH, x, y, maxDestW, maxDestH');
     elementToDraw && ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
     // ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
     // const { width } = this;
@@ -59953,12 +60207,12 @@ var EditorTextbox = /** @class */function (_super) {
     // const elHeight = this.getElementHeight() - padding;
     // const imageCopyX = -this.cropX - w / 2;
     // const imageCopyY = -this.cropY - (h * this.clippingPath.scaleY) / 2 - h / 2;
-    console.log(this.height, 'this.height');
-    var imageCopyX = -this.cropX - w / 2;
-    var imageCopyY = -this.cropY - h / 2;
-    console.log(this.cropY, 'this.cropY');
-    console.log(h, 'h');
-    console.log(this.cropY + imageCopyY, 'this.cropY + imageCopyY');
+    // console.log(this.height, 'this.height');
+    // const imageCopyX = -this.cropX - w / 2;
+    // const imageCopyY = -this.cropY - h / 2;
+    // console.log(this.cropY, 'this.cropY');
+    // console.log(h, 'h');
+    // console.log(this.cropY + imageCopyY, 'this.cropY + imageCopyY');
     // canvas.width / 2 - width / 2,
     //       canvas.height / 2 - height / 2,
     // ctxToDraw.drawImage(
@@ -60018,20 +60272,19 @@ var EditorTextbox = /** @class */function (_super) {
       // height,
     };
   };
-
-  EditorTextbox.prototype.drawBorders = function (ctx, styleOverride) {
-    // this.callSuper('drawBorders', ctx, styleOverride);
-    this._renderClippingBorders(ctx, styleOverride);
-    _super.prototype.drawBorders.call(this, ctx, {
-      angle: this.angle,
-      scaleX: this.scaleX,
-      scaleY: this.scaleY,
-      skewX: this.skewX,
-      skewY: this.skewY,
-      translateX: this.left,
-      translateY: this.top
-    }, styleOverride);
-  };
+  // drawBorders(ctx: CanvasRenderingContext2D, styleOverride: any) {
+  //   // this.callSuper('drawBorders', ctx, styleOverride);
+  //   this._renderClippingBorders(ctx, styleOverride);
+  //   super.drawBorders(ctx, {
+  //     angle: this.angle,
+  //     scaleX: this.scaleX,
+  //     scaleY: this.scaleY,
+  //     skewX: this.skewX,
+  //     skewY: this.skewY,
+  //     translateX: this.left,
+  //     translateY: this.top,
+  //   }, styleOverride)
+  // }
   EditorTextbox.prototype._renderClippingBorders = function (ctx, styleOverride) {
     if (styleOverride === void 0) {
       styleOverride = {};
@@ -60086,10 +60339,10 @@ var textboxDefaultValues = {
 exports.textboxDefaultValues = textboxDefaultValues;
 Object.assign(EditorTextbox.prototype, textboxDefaultValues);
 if (typeof EditorTextbox.prototype.isClipping === 'undefined') {
-  (0, _clippingText.extendWithClippingText)(EditorTextbox);
+  (0, _clippingText2.extendWithClippingText)(EditorTextbox);
 }
 fabric.util.classRegistry.setClass(EditorTextbox);
-},{"fabric":"../node_modules/fabric/dist/index.mjs","../mixins/clipping-text-1.mixin":"node_modules/fabric-editor/mixins/clipping-text-1.mixin.js"}],"node_modules/fabric-editor/controls/clipping-text/clipping-text.controls.handlers.js":[function(require,module,exports) {
+},{"../controls/clipping-text-1/clipping-text.controls":"node_modules/fabric-editor/controls/clipping-text-1/clipping-text.controls.js","fabric":"../node_modules/fabric/dist/index.mjs","../mixins/clipping-text-1.mixin":"node_modules/fabric-editor/mixins/clipping-text-1.mixin.js"}],"node_modules/fabric-editor/controls/clipping-text/clipping-text.controls.handlers.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -61584,11 +61837,10 @@ function checkRelativePositionBetweenElementsClippingText(originalImage, origina
     var originalImage = getFabricElementByKey(canvas, imageElementKey);
     var fabricActiveObject = fabricCanvas.getActiveObject();
     checkRelativePositionBetweenElementsClippingText(originalImage, fabricActiveObject);
-    // fabricActiveObject.set('clippingPath', originalImage)
-    fabricActiveObject.clippingPath = originalImage;
-    Object.assign(fabricActiveObject, fabricActiveObject.calcTextByClipPath());
-    console.log(fabricActiveObject, 'fabricActiveObject');
     fabricActiveObject.set('clippingPath', originalImage);
+    // fabricActiveObject.clippingPath = originalImage;
+    Object.assign(fabricActiveObject, fabricActiveObject.calcTextByClipPath());
+    // fabricActiveObject.set('clippingPath', originalImage)
     canvas.remove(originalImage);
     fabricCanvas.requestRenderAll();
   }
@@ -61645,7 +61897,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51183" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54035" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

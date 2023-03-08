@@ -176,8 +176,31 @@ function cornerBL(dim, finalMatrix, fabricObject) {
     };
     return fabric.util.transformPoint(point, _finalMatrix);
 }
+// function scaleEquallyCrop(
+//   eventData: TPointerEvent,
+//   transform: ScaleTransform,
+//   x: number,
+//   y: number,
+// ) {
+//   return scaleObjectCrop(eventData, transform, x, y);
+// }
 function scaleEquallyCrop(eventData, transform, x, y) {
-    return scaleObjectCrop(eventData, transform, x, y);
+    var corner = transform.corner;
+    if (corner === 'tlS') {
+        return scaleObjectCrop(eventData, transform, x, y);
+    }
+    else {
+        return scaleObjectCropTL(eventData, transform, x, y);
+    }
+    // if (corner === 'trS') {
+    //   return scaleObjectCropTR(eventData, transform, x, y);
+    // }
+    // if (corner === 'brS') {
+    //   return scaleObjectCropBR(eventData, transform, x, y);
+    // }
+    // if (corner === 'blS') {
+    //   return scaleObjectCropBL(eventData, transform, x, y);
+    // }
 }
 function scalingXCrop(eventData, transform, x, y) {
     return scaleObjectCrop(eventData, transform, x, y, { by: 'x' });
@@ -306,8 +329,8 @@ function scaleEquallyCropTL(eventData, transform, x, y) {
     var anchorOriginX = 1 + (remainderX / target.clippingPath.width);
     var anchorOriginY = 1 + (remainderY / target.clippingPath.height);
     var centerPoint = target.clippingPath.getRelativeCenterPoint();
-    var constraint = target.clippingPath.translateToOriginPoint(centerPoint, transform.originX, transform.originY);
-    var newPoint = normalizePoint(target.clippingPath, new fabric.Point(x, y), transform.originX, transform.originY);
+    var constraint = target.clippingPath.translateToOriginPoint(centerPoint, anchorOriginX, anchorOriginY);
+    var newPoint = normalizePoint(target.clippingPath, new fabric.Point(x, y), anchorOriginX, anchorOriginY);
     // const newPoint = fabric.controlsUtils.getLocalPoint(transform, transform.originX, transform.originY, x, y);
     var scale = calcScale(newPoint, fullHeight, fullWidth, target.flipX, target.flipY);
     var oldScaleX = target.clippingPath.scaleX;
@@ -320,9 +343,9 @@ function scaleEquallyCropTL(eventData, transform, x, y) {
     var newHeight = target.clippingPath.height / scaleChangeY;
     var newCropX = fullWidth - newWidth - scaledRemainderX;
     var newCropY = fullHeight - newHeight - scaledRemainderY;
-    if (newWidth + scaledRemainderX > fullWidth || newHeight + scaledRemainderY > fullHeight) {
-        return false;
-    }
+    // if (newWidth + scaledRemainderX > fullWidth || newHeight + scaledRemainderY > fullHeight) {
+    //   return false;
+    // }
     target.clippingPath.scaleX = scale;
     target.clippingPath.scaleY = scale;
     // target.clippingPath.width = newWidth;
@@ -333,10 +356,101 @@ function scaleEquallyCropTL(eventData, transform, x, y) {
     //   target.clippingPath.scaleX /= scaleChangeX;
     //   target.clippingPath.scaleY /= scaleChangeY;
     // }
-    // const newAnchorOriginX = 1 + (scaledRemainderX / newWidth);
-    // const newAnchorOriginY = 1 + (scaledRemainderY / newHeight);
-    target.clippingPath.setPositionByOrigin(constraint, transform.originX, transform.originY);
+    var newAnchorOriginX = 1 + (scaledRemainderX / newWidth);
+    var newAnchorOriginY = 1 + (scaledRemainderY / newHeight);
+    target.clippingPath.setPositionByOrigin(constraint, newAnchorOriginX, newAnchorOriginY);
     // target.clippingPath.setPositionByOrigin(constraint, newAnchorOriginX, newAnchorOriginY);
+    return true;
+}
+function scaleObjectCropTL(eventData, transform, x, y, options) {
+    if (options === void 0) { options = {}; }
+    var target = transform.target, by = options.by, original = transform.original, scaleProportionally = scaleIsProportional(eventData, target);
+    var forbidScaling = scalingIsForbidden(target, by, scaleProportionally);
+    var newPoint, scaleX, scaleY, dim, signX, signY;
+    if (forbidScaling) {
+        return false;
+    }
+    var fullWidth = target.getOriginalElementWidth();
+    var fullHeight = target.getOriginalElementHeight();
+    var remainderX = fullWidth - target.width - target.cropX;
+    var remainderY = fullHeight - target.height - target.cropY;
+    var anchorOriginX = 1 + (remainderX / target.width);
+    var anchorOriginY = 1 + (remainderY / target.height);
+    var centerPoint = target.getRelativeCenterPoint();
+    var constraint = target.translateToOriginPoint(centerPoint, anchorOriginX, anchorOriginY);
+    if (transform.gestureScale) {
+        scaleX = transform.scaleX * transform.gestureScale;
+        scaleY = transform.scaleY * transform.gestureScale;
+    }
+    else {
+        newPoint = normalizePoint(target, new fabric.Point(x, y), anchorOriginX, anchorOriginY);
+        signX = by !== 'y' ? Math.sign(newPoint.x || transform.signX || 1) : 1;
+        signY = by !== 'x' ? Math.sign(newPoint.y || transform.signY || 1) : 1;
+        if (!transform.signX) {
+            transform.signX = signX;
+        }
+        if (!transform.signY) {
+            transform.signY = signY;
+        }
+        if (isLocked(target, 'lockScalingFlip') &&
+            (transform.signX !== signX || transform.signY !== signY)) {
+            return false;
+        }
+        dim = target._getOriginalTransformedDimensions();
+        // missing detection of flip and logic to switch the origin
+        if (scaleProportionally && !by) {
+            // uniform scaling
+            var distance = Math.abs(newPoint.x) + Math.abs(newPoint.y), original_1 = transform.original, originalDistance = Math.abs((dim.x * original_1.scaleX) / target.scaleX) +
+                Math.abs((dim.y * original_1.scaleY) / target.scaleY), scale = distance / originalDistance;
+            scaleX = original_1.scaleX * scale;
+            scaleY = original_1.scaleY * scale;
+        }
+        else {
+            scaleX = Math.abs((newPoint.x * target.scaleX) / dim.x);
+            scaleY = Math.abs((newPoint.y * target.scaleY) / dim.y);
+        }
+        // if we are scaling by center, we need to double the scale
+        if (isTransformCentered(transform)) {
+            scaleX *= 2;
+            scaleY *= 2;
+        }
+        if (transform.signX !== signX && by !== 'y') {
+            transform.originX = invertOrigin(transform.originX);
+            scaleX *= -1;
+            transform.signX = signX;
+        }
+        if (transform.signY !== signY && by !== 'x') {
+            transform.originY = invertOrigin(transform.originY);
+            scaleY *= -1;
+            transform.signY = signY;
+        }
+    }
+    var oldScaleX = target.scaleX;
+    var oldScaleY = target.scaleY;
+    var scaleChangeX = scaleX / oldScaleX;
+    var scaleChangeY = scaleY / oldScaleY;
+    var scaledRemainderX = remainderX / scaleChangeX;
+    var scaledRemainderY = remainderY / scaleChangeY;
+    var newWidth = target.width / scaleChangeX;
+    var newHeight = target.height / scaleChangeY;
+    var newCropX = fullWidth - newWidth - scaledRemainderX;
+    var newCropY = fullHeight - newHeight - scaledRemainderY;
+    if (newWidth + scaledRemainderX > fullWidth || newHeight + scaledRemainderY > fullHeight) {
+        return false;
+    }
+    target.scaleX = scaleX;
+    target.scaleY = scaleY;
+    target.width = newWidth;
+    target.height = newHeight;
+    target.cropX = newCropX;
+    target.cropY = newCropY;
+    if (target.clippingPath) {
+        target.clippingPath.scaleX /= scaleChangeX;
+        target.clippingPath.scaleY /= scaleChangeY;
+    }
+    var newAnchorOriginX = 1 + (scaledRemainderX / newWidth);
+    var newAnchorOriginY = 1 + (scaledRemainderY / newHeight);
+    target.setPositionByOrigin(constraint, newAnchorOriginX, newAnchorOriginY);
     return true;
 }
 function editClippingTextHandler(eventData, transform) {

@@ -1,9 +1,10 @@
 import * as fabric from 'fabric';
-import { imageCornerML, imageCornerMR, scalingEqually, scalingXCrop } from './clipping-mask.controls.handlers';
+import { imageCornerML, imageCornerMR, scalingEqually as scalingEquallyClippingMask, scalingXCrop } from './clipping-mask.controls.handlers';
 import { imageCornerBL, imageCornerBR, imageCornerTL, imageCornerTR, scaleEquallyCropBL, scaleEquallyCropBLFlig, scaleEquallyCropBR, scaleEquallyCropBRFlig, 
 // scaleEquallyCropTL,
 scaleEquallyCropTLFlig, scaleEquallyCropTR, scaleEquallyCropTRFlig, } from '../cropping/cropping.controls.handlers';
 import { scaleEquallyCrop } from './clipping-mask.controls.handlers';
+import { scalingEqually } from '../../controls/scale';
 var controls = fabric.Object.prototype.controls;
 // @ts-ignore
 var _a = fabric.controlsUtils, scaleCursorStyleHandler = _a.scaleCursorStyleHandler, renderCircleControl = _a.renderCircleControl;
@@ -20,7 +21,13 @@ var _a = fabric.controlsUtils, scaleCursorStyleHandler = _a.scaleCursorStyleHand
 // });
 export var imageControls = {
     tl: controls.tl,
-    tr: controls.tr,
+    // tr: controls.tr,
+    tr: new fabric.Control({
+        x: 0.5,
+        y: -0.5,
+        cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
+        actionHandler: scalingEqually,
+    }),
     bl: controls.bl,
     br: controls.br,
     mtr: controls.mtr,
@@ -28,14 +35,14 @@ export var imageControls = {
     mr: new fabric.Control({
         x: 0.5,
         y: 0,
-        actionHandler: scalingEqually,
+        actionHandler: scalingEquallyClippingMask,
         cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
         actionName: 'resizing',
     }),
     ml: new fabric.Control({
         x: -0.5,
         y: 0,
-        actionHandler: scalingEqually,
+        actionHandler: scalingEquallyClippingMask,
         cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
         actionName: 'resizing',
     }),

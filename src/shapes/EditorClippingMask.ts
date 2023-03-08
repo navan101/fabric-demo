@@ -392,35 +392,39 @@ export class EditorClippingMask extends EditorImage {
 
   _renderClippingBackground(ctx: CanvasRenderingContext2D) {
     // if (this.isClipping) {
-      ctx.save()
-      const { width } = this;
-      const { height } = this;
-      const elementToDraw = this._elementToDraw;
-      ctx.globalAlpha = this.cropOpacity;
-      // const padding = this.getElementPadding();
-      const padding = 0;
-      const elWidth = this.getElementWidth() - padding;
-      const elHeight = this.getElementHeight() - padding;
-      const imageCopyX = -this.cropX - width / 2;
-      const imageCopyY = -this.cropY - height / 2;
-      // const sX = (this.originalScaleX || this.scaleX);
-      // const sY = (this.originalScaleX || this.scaleX);
-      // ctx.scale(sX, sY);
-      ctx.drawImage(
-        elementToDraw,
-        imageCopyX,
-        imageCopyY,
-        elWidth,
-        elHeight,
-      );
-      ctx.restore();
-      ctx.globalAlpha = 1;
+    ctx.save()
+    const { width } = this;
+    const { height } = this;
+    const elementToDraw = this._elementToDraw;
+    ctx.globalAlpha = this.cropOpacity;
+    // const padding = this.getElementPadding();
+    const padding = 0;
+    const elWidth = this.getElementWidth() - padding;
+    const elHeight = this.getElementHeight() - padding;
+    const imageCopyX = -this.cropX - width / 2;
+    const imageCopyY = -this.cropY - height / 2;
+    // const sX = (this.originalScaleX || this.scaleX);
+    // const sY = (this.originalScaleX || this.scaleX);
+    // ctx.scale(sX, sY);
+    ctx.drawImage(
+      elementToDraw,
+      imageCopyX,
+      imageCopyY,
+      elWidth,
+      elHeight,
+    );
+    ctx.restore();
+    ctx.globalAlpha = 1;
     // }
   }
 
   _renderClippingByText(ctx: CanvasRenderingContext2D) {
     if (this.clippingPath) {
-      const { width, height } = this;
+      const { width, height, scaleX } = this;
+      // console.log(width, 'width');
+      // console.log(scaleX, 'scaleX');
+      // console.log(width * scaleX, 'width * scaleX');
+      // console.log(this.clippingPath.width, 'this.clippingPath.width');
 
       const elementToDraw = this._elementToDraw;
       const clipPathScaleFactorX = this.clippingPath.scaleX;
@@ -436,6 +440,7 @@ export class EditorClippingMask extends EditorImage {
       ctxClippingPath.translate(this.clippingPath.width / 2, this.clippingPath.height / 2);
       this.clippingPath._render(ctxClippingPath);
       ctxClippingPath.restore();
+      // console.log(ctxClippingPath.canvas.toDataURL());
 
       const canvasEl = fabric.util.createCanvasElement();
       canvasEl.width = this.clippingPath.getScaledWidth();
@@ -443,20 +448,19 @@ export class EditorClippingMask extends EditorImage {
       const ctxEl = canvasEl.getContext('2d') as CanvasRenderingContext2D;
       ctxEl.save();
       // console.log(this.cropY, 'this.cropY')
+      // console.log(this.cropX, 'this.cropX');
       if (elementToDraw) {
-        // const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
-        // const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
-        // // ctxEl.scale((this.originalScaleX || this.scaleX), (this.originalScaleY || this.scaleY));
+        // ctxEl.save();
         // ctxEl.drawImage(
         //   elementToDraw,
         //   this.cropX,
         //   this.cropY,
-        //   Math.max(1, Math.floor(elWidth)),
-        //   Math.max(1, Math.floor(elHeight)),
+        //   Math.max(1, Math.floor(width)),
+        //   Math.max(1, Math.floor(height)),
         //   (canvasEl.width / 2 - width / 2),
         //   (canvasEl.height / 2 - height / 2),
-        //   Math.max(0, Math.floor(elWidth)),
-        //   Math.max(0, Math.floor(elHeight)),
+        //   Math.max(0, Math.floor(width)),
+        //   Math.max(0, Math.floor(height)),
         // );
         // ctxEl.restore();
 
@@ -489,7 +493,7 @@ export class EditorClippingMask extends EditorImage {
       ctxEl.restore();
 
       // console.log(ctxEl.canvas.toDataURL(), 'ctxEl.canvas');
-      ctx.drawImage(ctxEl.canvas, -width / 2, -height / 2);
+      ctx.drawImage(ctxEl.canvas, -(ctxClippingPath.canvas.width / 2), -ctxClippingPath.canvas.height / 2);
     }
   }
 

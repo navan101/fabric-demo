@@ -94,6 +94,26 @@ var EditorImage = /** @class */ (function (_super) {
         // @ts-ignore
         return this._element ? this._element.naturalHeight || this._element.height : 0;
     };
+    EditorImage.prototype._getOriginalTransformedDimensions = function (options) {
+        if (options === void 0) { options = {}; }
+        var dimOptions = __assign({ scaleX: this.scaleX, scaleY: this.scaleY, skewX: this.skewX, skewY: this.skewY, width: this.getOriginalElementWidth(), height: this.getOriginalElementHeight(), strokeWidth: this.strokeWidth }, options);
+        // stroke is applied before/after transformations are applied according to `strokeUniform`
+        var strokeWidth = dimOptions.strokeWidth;
+        var preScalingStrokeValue = strokeWidth, postScalingStrokeValue = 0;
+        if (this.strokeUniform) {
+            preScalingStrokeValue = 0;
+            postScalingStrokeValue = strokeWidth;
+        }
+        var dimX = dimOptions.width + preScalingStrokeValue, dimY = dimOptions.height + preScalingStrokeValue, noSkew = dimOptions.skewX === 0 && dimOptions.skewY === 0;
+        var finalDimensions;
+        if (noSkew) {
+            finalDimensions = new fabric.Point(dimX * dimOptions.scaleX, dimY * dimOptions.scaleY);
+        }
+        else {
+            finalDimensions = fabric.util.sizeAfterTransform(dimX, dimY, dimOptions);
+        }
+        return finalDimensions.scalarAdd(postScalingStrokeValue);
+    };
     EditorImage.prototype._render = function (ctx) {
         // ctx can be either the cacheCtx or the main ctx.
         // we want to disable shadow on the main one since on the cache the shadow is never set.

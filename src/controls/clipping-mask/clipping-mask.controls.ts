@@ -1,5 +1,10 @@
 import * as fabric from 'fabric';
-import { imageCornerML, imageCornerMR, scalingEqually, scalingXCrop } from './clipping-mask.controls.handlers';
+import {
+  imageCornerML,
+  imageCornerMR,
+  scalingEqually as scalingEquallyClippingMask,
+  scalingXCrop
+} from './clipping-mask.controls.handlers';
 import {
   renderFillClippingMaskHandler,
   // renderUploadHandler,
@@ -21,6 +26,7 @@ import {
 
 import { scaleEquallyCrop } from './clipping-mask.controls.handlers'
 import { changeWidth } from '../changeWidth';
+import { scalingEqually } from '../../controls/scale';
 
 const { controls } = fabric.Object.prototype;
 
@@ -41,7 +47,13 @@ const { scaleCursorStyleHandler, renderCircleControl } = fabric.controlsUtils;
 
 export const imageControls = {
   tl: controls.tl,
-  tr: controls.tr,
+  // tr: controls.tr,
+  tr: new fabric.Control({
+    x: 0.5,
+    y: -0.5,
+    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
+    actionHandler: scalingEqually,
+  }),
   bl: controls.bl,
   br: controls.br,
   mtr: controls.mtr,
@@ -49,14 +61,14 @@ export const imageControls = {
   mr: new fabric.Control({
     x: 0.5,
     y: 0,
-    actionHandler: scalingEqually,
+    actionHandler: scalingEquallyClippingMask,
     cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
     actionName: 'resizing',
   }),
   ml: new fabric.Control({
     x: -0.5,
     y: 0,
-    actionHandler: scalingEqually,
+    actionHandler: scalingEquallyClippingMask,
     cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
     actionName: 'resizing',
   }),

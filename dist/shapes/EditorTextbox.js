@@ -24,80 +24,11 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+import { defaultControls } from '../controls/clipping-text-1/clipping-text.controls';
 import * as fabric from 'fabric';
 import { extendWithClippingText } from '../mixins/clipping-text-1.mixin';
-var CorjlText = {
-    _measureText: function (font, text, fontSize) {
-        var _a = font.tables.head, yMax = _a.yMax, yMin = _a.yMin, xMax = _a.xMax, xMin = _a.xMin;
-        var scale = 1 / font.unitsPerEm * fontSize;
-        return {
-            yMax: yMax * scale,
-            yMin: yMin * scale,
-            xMax: xMax * scale,
-            xMin: xMin * scale,
-        };
-    },
-    _getCacheCanvasDimensions: function () {
-        var fontHeight = 0;
-        var fontWidth = 0;
-        if (this.fontload) {
-            var font = this.fontload();
-            var metrics = this._measureText(font, this.text, this.fontSize);
-            fontHeight = metrics.yMax - metrics.yMin;
-            fontWidth = metrics.xMax - metrics.xMin;
-        }
-        var dims = fabric.Object.prototype._getCacheCanvasDimensions.call(this);
-        var extendSize = this.strokeWidth || 0;
-        var fontSize = this.fontSize;
-        dims.width += (fontSize + fontWidth) * dims.zoomX + extendSize;
-        dims.height += (fontSize + fontHeight) * dims.zoomY + extendSize;
-        return dims;
-    }
-};
-// extend(fabric.Text.prototype, CorjlText);
-// fabric.Object.prototype._getTransformedDimensions = function (options: any = {}): fabric.Point {
-//   const dimOptions = {
-//     scaleX: this.scaleX,
-//     scaleY: this.scaleY,
-//     skewX: this.skewX,
-//     skewY: this.skewY,
-//     width: this.width,
-//     height: this.height,
-//     // @ts-ignore
-//     // width: this.isClipping && this.clippingPath ? (this.clippingPath.width * this.clippingPath.scaleX) : this.width,
-//     // width: this.clippingPath ? (this.clippingPath.width * this.clippingPath.scaleX) : this.width,
-//     // @ts-ignore
-//     // height: this.isClipping && this.clippingPath ? (this.clippingPath.height * this.clippingPath.scaleY) : this.height,
-//     // height: this.clippingPath ? (this.clippingPath.height * this.clippingPath.scaleY) : this.height,
-//     strokeWidth: this.strokeWidth,
-//     ...options,
-//   };
-//   // stroke is applied before/after transformations are applied according to `strokeUniform`
-//   const strokeWidth = dimOptions.strokeWidth;
-//   let preScalingStrokeValue = strokeWidth,
-//     postScalingStrokeValue = 0;
-//   if (this.strokeUniform) {
-//     preScalingStrokeValue = 0;
-//     postScalingStrokeValue = strokeWidth;
-//   }
-//   const dimX = dimOptions.width + preScalingStrokeValue,
-//     dimY = dimOptions.height + preScalingStrokeValue,
-//     noSkew = dimOptions.skewX === 0 && dimOptions.skewY === 0;
-//   let finalDimensions;
-//   if (noSkew) {
-//     finalDimensions = new fabric.Point(
-//       dimX * dimOptions.scaleX,
-//       dimY * dimOptions.scaleY
-//     );
-//   } else {
-//     finalDimensions = fabric.util.sizeAfterTransform(dimX, dimY, dimOptions);
-//   }
-//   return finalDimensions.scalarAdd(postScalingStrokeValue);
-// }
 var EditorTextbox = /** @class */ (function (_super) {
     __extends(EditorTextbox, _super);
-    // controls = defaultControls;
-    // objectCaching = true;
     function EditorTextbox(text, options) {
         var _this = this;
         var _a;
@@ -105,6 +36,8 @@ var EditorTextbox = /** @class */ (function (_super) {
         _this.cropOpacity = 0.5;
         _this.stateProperties = (_a = fabric.Textbox.prototype.stateProperties) === null || _a === void 0 ? void 0 : _a.concat('clippingPath', 'isClipping', 'cropX', 'cropY');
         _this.cacheProperties = fabric.Textbox.prototype.cacheProperties.concat('clippingPath', 'isClipping', 'cropX', 'cropY');
+        _this.controls = defaultControls;
+        _this.objectCaching = true;
         return _this;
         // this.on('resizing', (event: any) => {
         //   const { transform } = event;
@@ -155,9 +88,9 @@ var EditorTextbox = /** @class */ (function (_super) {
         //   fabricObject.clippingPath.setCoords();
         // });
     }
-    EditorTextbox.prototype.render = function (ctx) {
-        _super.prototype.render.call(this, ctx);
-    };
+    // render(ctx: CanvasRenderingContext2D) {
+    //   super.render(ctx);
+    // }
     EditorTextbox.prototype._render = function (ctx) {
         _super.prototype._render.call(this, ctx);
         // this._renderClippingBackground(ctx);
@@ -185,9 +118,11 @@ var EditorTextbox = /** @class */ (function (_super) {
         }
     };
     EditorTextbox.prototype._renderClippingText = function (ctx) {
+        // console.log(this.clippingPath, 'this.clippingPath');
         if (!this.clippingPath || this.isNotVisible()) {
             return;
         }
+        // console.log(this.clippingPath, 'this.clippingPath');
         var clipPathScaleFactorX = this.clippingPath.scaleX;
         var clipPathScaleFactorY = this.clippingPath.scaleY;
         if (!this._cacheClippingPathCanvas) {
@@ -244,7 +179,7 @@ var EditorTextbox = /** @class */ (function (_super) {
         var cropX = Math.max(this.cropX, 0);
         var cropY = Math.max(this.cropY, 0);
         // const cropY = this.cropY
-        console.log(cropY, 'cropY');
+        // console.log(cropY, 'cropY');
         // @ts-ignore
         var elWidth = elementToDraw.naturalWidth || elementToDraw.width;
         // @ts-ignore
@@ -258,7 +193,7 @@ var EditorTextbox = /** @class */ (function (_super) {
         var y = -h / 2;
         var maxDestW = Math.min(w, elWidth / scaleX - cropX);
         var maxDestH = Math.min(h, elHeight / scaleY - cropY);
-        console.log(sX, sY, sW, sH, x, y, maxDestW, maxDestH, 'sX, sY, sW, sH, x, y, maxDestW, maxDestH');
+        // console.log(sX, sY, sW, sH, x, y, maxDestW, maxDestH, 'sX, sY, sW, sH, x, y, maxDestW, maxDestH');
         elementToDraw &&
             ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
         // ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
@@ -271,12 +206,12 @@ var EditorTextbox = /** @class */ (function (_super) {
         // const elHeight = this.getElementHeight() - padding;
         // const imageCopyX = -this.cropX - w / 2;
         // const imageCopyY = -this.cropY - (h * this.clippingPath.scaleY) / 2 - h / 2;
-        console.log(this.height, 'this.height');
-        var imageCopyX = -this.cropX - w / 2;
-        var imageCopyY = -this.cropY - h / 2;
-        console.log(this.cropY, 'this.cropY');
-        console.log(h, 'h');
-        console.log(this.cropY + imageCopyY, 'this.cropY + imageCopyY');
+        // console.log(this.height, 'this.height');
+        // const imageCopyX = -this.cropX - w / 2;
+        // const imageCopyY = -this.cropY - h / 2;
+        // console.log(this.cropY, 'this.cropY');
+        // console.log(h, 'h');
+        // console.log(this.cropY + imageCopyY, 'this.cropY + imageCopyY');
         // canvas.width / 2 - width / 2,
         //       canvas.height / 2 - height / 2,
         // ctxToDraw.drawImage(
@@ -335,19 +270,19 @@ var EditorTextbox = /** @class */ (function (_super) {
             // height,
         };
     };
-    EditorTextbox.prototype.drawBorders = function (ctx, styleOverride) {
-        // this.callSuper('drawBorders', ctx, styleOverride);
-        this._renderClippingBorders(ctx, styleOverride);
-        _super.prototype.drawBorders.call(this, ctx, {
-            angle: this.angle,
-            scaleX: this.scaleX,
-            scaleY: this.scaleY,
-            skewX: this.skewX,
-            skewY: this.skewY,
-            translateX: this.left,
-            translateY: this.top,
-        }, styleOverride);
-    };
+    // drawBorders(ctx: CanvasRenderingContext2D, styleOverride: any) {
+    //   // this.callSuper('drawBorders', ctx, styleOverride);
+    //   this._renderClippingBorders(ctx, styleOverride);
+    //   super.drawBorders(ctx, {
+    //     angle: this.angle,
+    //     scaleX: this.scaleX,
+    //     scaleY: this.scaleY,
+    //     skewX: this.skewX,
+    //     skewY: this.skewY,
+    //     translateX: this.left,
+    //     translateY: this.top,
+    //   }, styleOverride)
+    // }
     EditorTextbox.prototype._renderClippingBorders = function (ctx, styleOverride) {
         if (styleOverride === void 0) { styleOverride = {}; }
         if (!this.canvas || !this.clippingPath || !this.isClipping) {

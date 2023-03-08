@@ -1039,6 +1039,9 @@ function scaleObjectMR(
           Math.abs((dim.x * original.scaleX) / target.scaleX) +
           Math.abs((dim.y * original.scaleY) / target.scaleY),
         scale = distance / originalDistance;
+        console.log(scale, 'scale');
+        console.log(original.scaleX, 'original.scaleX');
+        console.log(target.scaleX, 'target.scaleX');
       scaleX = original.scaleX * scale;
       scaleY = original.scaleY * scale;
     } else {
@@ -1065,27 +1068,38 @@ function scaleObjectMR(
   const oldScaleX = target.scaleX;
   const oldScaleY = target.scaleY;
   const scaleChangeX = scaleX / oldScaleX;
-  const scaleChangeY = scaleX / oldScaleX;
+  const scaleChangeY = scaleX / oldScaleY;
   // @ts-ignore
   target.clippingPath.set('width', target.width * scaleX);
   // @ts-ignore
   if (target.clippingPath.dynamicMinWidth >= target.clippingPath.width) {
     return oldScaleX !== target.scaleX || oldScaleY !== target.scaleY;
   }
-  if (!by) {
-    !isLocked(target, 'lockScalingX') && target.set('scaleX', scaleX);
-    !isLocked(target, 'lockScalingY') && target.set('scaleY', scaleY);
-  } else {
-    // forbidden cases already handled on top here.
-    by === 'x' && target.set('scaleX', scaleX);
-    by === 'y' && target.set('scaleY', scaleY);
-  }
+  target.set({
+    scaleX,
+    scaleY: scaleX,
+  })
+   // @ts-ignore
+   target.clippingPath.scaleX /= scaleChangeX;
+   // @ts-ignore
+   target.clippingPath.scaleY /= scaleChangeY;
+   // @ts-ignore
+   console.log(target.clippingPath.sHeight, target.clippingPath.height, 'target.clippingPath.sHeight')
   // @ts-ignore
-  // target.set('height', target.clippingPath.height / target.scaleY);
+  target.set('height', (target.clippingPath.sHeight || target.clippingPath.height ) / target.scaleY);
   // @ts-ignore
-  target.clippingPath.scaleX /= scaleChangeX;
-  // @ts-ignore
-  target.clippingPath.scaleY /= scaleChangeY;
+  // if (!by) {
+  //   !isLocked(target, 'lockScalingX') && target.set('scaleX', scaleX);
+  //   !isLocked(target, 'lockScalingY') && target.set('scaleY', scaleY);
+  // } else {
+  //   // forbidden cases already handled on top here.
+  //   by === 'x' && target.set('scaleX', scaleX);
+  //   by === 'y' && target.set('scaleY', scaleY);
+  // }
+  // target.set({
+  //   scaleX,
+  //   scaleY: scaleX,
+  // })
   return oldScaleX !== target.scaleX || oldScaleY !== target.scaleY;
 }
 
@@ -1241,10 +1255,10 @@ const scaleObjectFromCorner: TransformActionHandler<ScaleTransform> = (
 ) => {
   const corner = transform.corner;
   if (corner === 'mr') {
-    return scaleObjectMR(eventData, transform, x, y);
+    return scaleObjectMR(eventData, transform, x, y, { by: 'x'});
   } else {
     // return scaleObjectML(eventData, transform, x, y);
-    return scaleObjectMR(eventData, transform, x, y);
+    return scaleObjectMR(eventData, transform, x, y, { by: 'x'});
   }
 };
 

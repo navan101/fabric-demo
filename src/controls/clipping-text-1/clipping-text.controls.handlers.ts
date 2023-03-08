@@ -200,13 +200,36 @@ function cornerBL(dim, finalMatrix, fabricObject) {
   return fabric.util.transformPoint(point, _finalMatrix);
 }
 
+// function scaleEquallyCrop(
+//   eventData: TPointerEvent,
+//   transform: ScaleTransform,
+//   x: number,
+//   y: number,
+// ) {
+//   return scaleObjectCrop(eventData, transform, x, y);
+// }
+
 function scaleEquallyCrop(
   eventData: TPointerEvent,
   transform: ScaleTransform,
   x: number,
   y: number,
 ) {
-  return scaleObjectCrop(eventData, transform, x, y);
+  const corner = transform.corner;
+  if (corner === 'tlS') {
+    return scaleObjectCrop(eventData, transform, x, y);
+  } else {
+    return scaleObjectCropTL(eventData, transform, x, y);
+  }
+  // if (corner === 'trS') {
+  //   return scaleObjectCropTR(eventData, transform, x, y);
+  // }
+  // if (corner === 'brS') {
+  //   return scaleObjectCropBR(eventData, transform, x, y);
+  // }
+  // if (corner === 'blS') {
+  //   return scaleObjectCropBL(eventData, transform, x, y);
+  // }
 }
 
 function scalingXCrop(
@@ -359,8 +382,8 @@ function scaleEquallyCropTL(eventData, transform, x, y) {
   const anchorOriginX = 1 + (remainderX / target.clippingPath.width);
   const anchorOriginY = 1 + (remainderY / target.clippingPath.height);
   const centerPoint = target.clippingPath.getRelativeCenterPoint();
-  const constraint = target.clippingPath.translateToOriginPoint(centerPoint, transform.originX, transform.originY);
-  const newPoint = normalizePoint(target.clippingPath, new fabric.Point(x, y), transform.originX, transform.originY);
+  const constraint = target.clippingPath.translateToOriginPoint(centerPoint, anchorOriginX, anchorOriginY);
+  const newPoint = normalizePoint(target.clippingPath, new fabric.Point(x, y), anchorOriginX, anchorOriginY);
   // const newPoint = fabric.controlsUtils.getLocalPoint(transform, transform.originX, transform.originY, x, y);
   const scale = calcScale(newPoint, fullHeight, fullWidth, target.flipX, target.flipY);
   const oldScaleX = target.clippingPath.scaleX;
@@ -374,9 +397,9 @@ function scaleEquallyCropTL(eventData, transform, x, y) {
   const newCropX = fullWidth - newWidth - scaledRemainderX;
   const newCropY = fullHeight - newHeight - scaledRemainderY;
 
-  if (newWidth + scaledRemainderX > fullWidth || newHeight + scaledRemainderY > fullHeight) {
-    return false;
-  }
+  // if (newWidth + scaledRemainderX > fullWidth || newHeight + scaledRemainderY > fullHeight) {
+  //   return false;
+  // }
 
   target.clippingPath.scaleX = scale;
   target.clippingPath.scaleY = scale;
@@ -388,10 +411,122 @@ function scaleEquallyCropTL(eventData, transform, x, y) {
   //   target.clippingPath.scaleX /= scaleChangeX;
   //   target.clippingPath.scaleY /= scaleChangeY;
   // }
-  // const newAnchorOriginX = 1 + (scaledRemainderX / newWidth);
-  // const newAnchorOriginY = 1 + (scaledRemainderY / newHeight);
-  target.clippingPath.setPositionByOrigin(constraint, transform.originX, transform.originY);
+  const newAnchorOriginX = 1 + (scaledRemainderX / newWidth);
+  const newAnchorOriginY = 1 + (scaledRemainderY / newHeight);
+  target.clippingPath.setPositionByOrigin(constraint,newAnchorOriginX, newAnchorOriginY);
   // target.clippingPath.setPositionByOrigin(constraint, newAnchorOriginX, newAnchorOriginY);
+  return true;
+}
+
+function scaleObjectCropTL(
+  eventData: TPointerEvent,
+  transform: ScaleTransform,
+  x: number,
+  y: number,
+  options: { by?: ScaleBy } = {}
+) {
+  const target = transform.target as any,
+    by = options.by,
+    original = transform.original,
+    scaleProportionally = scaleIsProportional(eventData, target);
+  const forbidScaling = scalingIsForbidden(target, by, scaleProportionally);
+  let newPoint, scaleX, scaleY, dim, signX, signY;
+  if (forbidScaling) {
+    return false;
+  }
+
+  const fullWidth = target.getOriginalElementWidth();
+  const fullHeight = target.getOriginalElementHeight();
+  const remainderX = fullWidth - target.width - target.cropX;
+  const remainderY = fullHeight - target.height - target.cropY;
+  const anchorOriginX = 1 + (remainderX / target.width);
+  const anchorOriginY = 1 + (remainderY / target.height);
+  const centerPoint = target.getRelativeCenterPoint();
+  const constraint = target.translateToOriginPoint(centerPoint, anchorOriginX, anchorOriginY);
+
+  if (transform.gestureScale) {
+    scaleX = transform.scaleX * transform.gestureScale;
+    scaleY = transform.scaleY * transform.gestureScale;
+  } else {
+    newPoint = normalizePoint(target, new fabric.Point(x, y), anchorOriginX, anchorOriginY);
+    signX = by !== 'y' ? Math.sign(newPoint.x || transform.signX || 1) : 1;
+    signY = by !== 'x' ? Math.sign(newPoint.y || transform.signY || 1) : 1;
+    if (!transform.signX) {
+      transform.signX = signX;
+    }
+    if (!transform.signY) {
+      transform.signY = signY;
+    }
+
+    if (
+      isLocked(target, 'lockScalingFlip') &&
+      (transform.signX !== signX || transform.signY !== signY)
+    ) {
+      return false;
+    }
+
+    dim = target._getOriginalTransformedDimensions();
+    // missing detection of flip and logic to switch the origin
+    if (scaleProportionally && !by) {
+      // uniform scaling
+      const distance = Math.abs(newPoint.x) + Math.abs(newPoint.y),
+        { original } = transform,
+        originalDistance =
+          Math.abs((dim.x * original.scaleX) / target.scaleX) +
+          Math.abs((dim.y * original.scaleY) / target.scaleY),
+        scale = distance / originalDistance;
+      scaleX = original.scaleX * scale;
+      scaleY = original.scaleY * scale;
+    } else {
+      scaleX = Math.abs((newPoint.x * target.scaleX) / dim.x);
+      scaleY = Math.abs((newPoint.y * target.scaleY) / dim.y);
+    }
+    // if we are scaling by center, we need to double the scale
+    if (isTransformCentered(transform)) {
+      scaleX *= 2;
+      scaleY *= 2;
+    }
+    if (transform.signX !== signX && by !== 'y') {
+      transform.originX = invertOrigin(transform.originX);
+      scaleX *= -1;
+      transform.signX = signX;
+    }
+    if (transform.signY !== signY && by !== 'x') {
+      transform.originY = invertOrigin(transform.originY);
+      scaleY *= -1;
+      transform.signY = signY;
+    }
+  }
+
+  const oldScaleX = target.scaleX;
+  const oldScaleY = target.scaleY;
+  const scaleChangeX = scaleX / oldScaleX;
+  const scaleChangeY = scaleY / oldScaleY;
+  const scaledRemainderX = remainderX / scaleChangeX;
+  const scaledRemainderY = remainderY / scaleChangeY;
+  const newWidth = target.width / scaleChangeX;
+  const newHeight = target.height / scaleChangeY;
+  const newCropX = fullWidth - newWidth - scaledRemainderX;
+  const newCropY = fullHeight - newHeight - scaledRemainderY;
+
+  if (newWidth + scaledRemainderX > fullWidth || newHeight + scaledRemainderY > fullHeight) {
+    return false;
+  }
+
+
+  target.scaleX = scaleX;
+  target.scaleY = scaleY;
+  target.width = newWidth;
+  target.height = newHeight;
+  target.cropX = newCropX;
+  target.cropY = newCropY;
+  if (target.clippingPath) {
+    target.clippingPath.scaleX /= scaleChangeX;
+    target.clippingPath.scaleY /= scaleChangeY;
+  }
+  const newAnchorOriginX = 1 + (scaledRemainderX / newWidth);
+  const newAnchorOriginY = 1 + (scaledRemainderY / newHeight);
+  target.setPositionByOrigin(constraint, newAnchorOriginX, newAnchorOriginY);
   return true;
 }
 

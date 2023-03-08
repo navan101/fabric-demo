@@ -488,6 +488,7 @@ export function extendWithClippingText(EditorClippingText: any) {
       this.__isClipping = value;
 
       if (value) {
+        this.objectCaching = false;
         // defaultCursor = fabricCanvas.defaultCursor;
         // fabricCanvas.defaultCursor = 'move';
         // handle crop mode enter
@@ -499,7 +500,7 @@ export function extendWithClippingText(EditorClippingText: any) {
         // this.strokeWidth = 0;
 
         this.setupDragMatrix();
-        // this.bindCropModeHandlers();
+        this.bindCropModeHandlers();
         // after changing padding we have to recalculate corner positions
         this.controls = cropControls;
         // if (this.flipX && !this.flipY) {
@@ -531,6 +532,7 @@ export function extendWithClippingText(EditorClippingText: any) {
         fabricCanvas.altActionKey = 'none';
         fabricCanvas.selection = false;
       } else {
+        this.objectCaching = true;
         // fabricCanvas.defaultCursor = defaultCursor;
         // restore properties from before crop
         unisolateObjectForEdit(this);
