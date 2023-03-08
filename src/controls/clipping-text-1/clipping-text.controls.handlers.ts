@@ -78,78 +78,65 @@ function getPatternLocalPoint(transform, originX, originY, x, y) {
 }
 // @ts-ignore
 function cornerTL(dim, finalMatrix, fabricObject) {
-  // const matrix = fabricObject.calcTransformMatrix();
-  // const vpt = fabricObject.getViewportTransform();
-  // const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
-  // const point = {
-  //   x: (-fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
-  //   y: (-fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
-  // }
-  // return fabric.util.transformPoint(point, _finalMatrix);
-
-  // const matrix = fabricObject.calcTransformMatrix();
-  // const vpt = fabricObject.getViewportTransform();
-  // const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
-  // const point = {
-  //   x: (-fabricObject.width / 2 - fabricObject.cropX),
-  //   y: (-fabricObject.height / 2 - fabricObject.cropY),
-  // }
-  // return fabric.util.transformPoint(point, _finalMatrix);
-
-  // const matrix = fabricObject.calcTransformMatrix();
-  // const vpt = fabricObject.getViewportTransform();
-  // const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
-  // const point = {
-  //   x: (-fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
-  //   y: (-fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
-  // }
-  // return fabric.util.transformPoint(point, _finalMatrix);
-
   const matrix = fabricObject.calcTransformMatrix();
   const vpt = fabricObject.getViewportTransform();
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
+  const left = (fabricObject.cropX - fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2);
+  const top = -(fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY - fabricObject.cropY) + fabricObject.height / 2;
   const point = {
-    x: (fabricObject.cropX - fabricObject.width / 2),
-    y: -(fabricObject.height / 2 - fabricObject.cropY),
+    x: left,
+    y: top,
   }
   return fabric.util.transformPoint(point, _finalMatrix);
 }
 
 // @ts-ignore
 function cornerTR(dim, finalMatrix, fabricObject) {
+  // const matrix = fabricObject.calcTransformMatrix();
+  // const vpt = fabricObject.getViewportTransform();
+  // const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
+  // const left = (fabricObject.cropX - fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2);
+  // const top = -(fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY - fabricObject.cropY) + fabricObject.height / 2;
+  // const point = {
+  //   x: left,
+  //   y: top,
+  // }
+  // return fabric.util.transformPoint(point, _finalMatrix);
+
   const matrix = fabricObject.calcTransformMatrix();
   const vpt = fabricObject.getViewportTransform();
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
   const fullWidth = fabricObject.clippingPath.getOriginalElementWidth();
   const point = {
-    // eslint-disable-next-line max-len
     x: (fullWidth * fabricObject.clippingPath.scaleX - fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
-    y: (-fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+    y: -(fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY - fabricObject.cropY) + fabricObject.height / 2
   }
   return fabric.util.transformPoint(point, _finalMatrix);
-
-  // const matrix = fabricObject.calcTransformMatrix();
-  // const vpt = fabricObject.getViewportTransform();
-  // const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
-  // const fullWidth = fabricObject.clippingPath.getOriginalElementWidth();
-  // const point = {
-  //   x: (fullWidth * fabricObject.clippingPath.scaleX - fabricObject.width / 2 - fabricObject.cropX),
-  //   y: (fabricObject.cropY - fabricObject.height / 2),
-  // }
-  // return fabric.util.transformPoint(point, _finalMatrix);
 
 }
 
 // @ts-ignore
 function cornerML(dim, finalMatrix, fabricObject) {
+  // const matrix = fabricObject.calcTransformMatrix();
+  // const vpt = fabricObject.getViewportTransform();
+  // const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
+  // const fullHeight = fabricObject.clippingPath.getOriginalElementHeight();
+  // const point = {
+  //   x: (-fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
+  //   // eslint-disable-next-line max-len
+  //   y: (fullHeight * fabricObject.clippingPath.scaleY / 2 - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+  // }
+  // return fabric.util.transformPoint(point, _finalMatrix);
   const matrix = fabricObject.calcTransformMatrix();
   const vpt = fabricObject.getViewportTransform();
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
-  const fullHeight = fabricObject.clippingPath.getOriginalElementHeight();
+  const fullHeight = fabricObject.pattern.getOriginalElementHeight();
+  const left = (fabricObject.cropX - fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2);
+  // const top = -(fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY - fabricObject.cropY) + fabricObject.height / 2;
+  const top = (fullHeight * fabricObject.clippingPath.scaleY / 2 - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY);
   const point = {
-    x: (-fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
-    // eslint-disable-next-line max-len
-    y: (fullHeight * fabricObject.clippingPath.scaleY / 2 - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+    x: left,
+    y: top,
   }
   return fabric.util.transformPoint(point, _finalMatrix);
 }
@@ -177,25 +164,39 @@ function cornerBR(dim, finalMatrix, fabricObject) {
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
   const fullWidth = fabricObject.clippingPath.getOriginalElementWidth();
   const fullHeight = fabricObject.clippingPath.getOriginalElementHeight();
+  const top = (fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY - fabricObject.cropY) - fabricObject.height / 2;
   const point = {
     // eslint-disable-next-line max-len
     x: (fullWidth * fabricObject.clippingPath.scaleX - fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
     // eslint-disable-next-line max-len
-    y: (fullHeight * fabricObject.clippingPath.scaleY - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+    y: top,
   }
   return fabric.util.transformPoint(point, _finalMatrix);
 }
 
 // @ts-ignore
 function cornerBL(dim, finalMatrix, fabricObject) {
+  // const matrix = fabricObject.calcTransformMatrix();
+  // const vpt = fabricObject.getViewportTransform();
+  // const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
+  // const fullHeight = fabricObject.clippingPath.getOriginalElementHeight();
+  // const point = {
+  //   x: (-fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
+  //   // eslint-disable-next-line max-len
+  //   y: (fullHeight * fabricObject.clippingPath.scaleY - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+  // }
+  // return fabric.util.transformPoint(point, _finalMatrix);
+
   const matrix = fabricObject.calcTransformMatrix();
   const vpt = fabricObject.getViewportTransform();
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
   const fullHeight = fabricObject.clippingPath.getOriginalElementHeight();
+  const left = (fabricObject.cropX - fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2);
+  const top = (fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY - fabricObject.cropY) - fabricObject.height / 2;
+  // const top = (fullHeight * fabricObject.clippingPath.scaleY - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY)
   const point = {
-    x: (-fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
-    // eslint-disable-next-line max-len
-    y: (fullHeight * fabricObject.clippingPath.scaleY - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+    x: left,
+    y: top,
   }
   return fabric.util.transformPoint(point, _finalMatrix);
 }

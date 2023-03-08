@@ -78,31 +78,31 @@ export const cropControls = {
     actionHandler: scaleEquallyCrop,
     render: renderCircleControl,
   }),
-  // blS: new fabric.Control({
-  //   x: -0.5,
-  //   y: 0.5,
-  //   // @ts-ignore
-  //   name: 'blS',
-  //   cursorStyleHandler: scaleCursorStyleHandler,
-  //   // @ts-ignore
-  //   positionHandler: cornerBL,
-  //   // @ts-ignore
-  //   actionHandler: scaleEquallyCrop,
-  //   render: renderCircleControl,
-  // }),
-  // brS: new fabric.Control({
-  //   x: 0.5,
-  //   y: 0.5,
-  //   // @ts-ignore
-  //   name: 'brS',
-  //   cursorStyleHandler: scaleCursorStyleHandler,
-  //   // @ts-ignore
-  //   positionHandler: cornerBR,
-  //   // @ts-ignore
-  //   actionHandler: scaleEquallyCrop,
-  //   render: renderCircleControl,
-  //   // getActionName: scaleOrSkewActionName,
-  // }),
+  blS: new fabric.Control({
+    x: -0.5,
+    y: 0.5,
+    // @ts-ignore
+    name: 'blS',
+    cursorStyleHandler: scaleCursorStyleHandler,
+    // @ts-ignore
+    positionHandler: cornerBL,
+    // @ts-ignore
+    actionHandler: scaleEquallyCrop,
+    render: renderCircleControl,
+  }),
+  brS: new fabric.Control({
+    x: 0.5,
+    y: 0.5,
+    // @ts-ignore
+    name: 'brS',
+    cursorStyleHandler: scaleCursorStyleHandler,
+    // @ts-ignore
+    positionHandler: cornerBR,
+    // @ts-ignore
+    actionHandler: scaleEquallyCrop,
+    render: renderCircleControl,
+    // getActionName: scaleOrSkewActionName,
+  }),
 
   // mlS: new fabric.Control({
   //   x: -0.5,

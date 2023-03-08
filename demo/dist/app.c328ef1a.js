@@ -58867,8 +58867,9 @@ function cornerTL(dim, finalMatrix, fabricObject) {
   var vpt = fabricObject.getViewportTransform();
   var _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
   var point = {
-    x: fabricObject.cropX - fabricObject.width / 2,
-    y: -(fabricObject.height / 2 - fabricObject.cropY)
+    x: fabricObject.cropX - fabricObject.clippingPath.width / 2,
+    // y: -(fabricObject.clippingPath.height / 2 - fabricObject.cropY),
+    y: 0
   };
   return fabric.util.transformPoint(point, _finalMatrix);
 }
