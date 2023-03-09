@@ -605,7 +605,7 @@ function scaleObjectCrop1(
     // newPoint = normalizePoint(target.pattern, new fabric.Point(x, y), transform.originX, transform.originY);
     // newPoint = getPatternLocalPoint(transform, transform.originX, transform.originY, x, y);
     // @ts-ignore
-    newPoint = normalizePoint(target.clippingPath, new fabric.Point(x, y), transform.originY, transform.originY);
+    newPoint = normalizePoint(target.clippingPath, new fabric.Point(x, y), transform.originX, transform.originY);
     signX = by !== 'y' ? Math.sign(newPoint.x || transform.signX || 1) : 1;
     signY = by !== 'x' ? Math.sign(newPoint.y || transform.signY || 1) : 1;
     if (!transform.signX) {
@@ -706,7 +706,7 @@ function scaleObjectCrop1(
   const h = target.clippingPath.height * scaleChangeY * 2;
 
   // @ts-ignore
-  // target.clippingPath.setPositionByOrigin(constraint, transform.originX, transform.originY);
+  target.clippingPath.setPositionByOrigin(constraint, transform.originX, transform.originY);
   // @ts-ignore
   const centerClippingPath = target.clippingPath.getRelativeCenterPoint();
   const center = {
@@ -718,11 +718,10 @@ function scaleObjectCrop1(
   const angleRadians = fabric.util.degreesToRadians(-target.angle);
   const pointCenter = new fabric.Point(center.x, center.y);
   const point = fabric.util.rotateVector(pointCenter, angleRadians);
-  console.log(point, 'point')
   // @ts-ignore
-  target.cropX = original.cropX - point.x;
+  target.cropX = original.cropX + point.x;
   // @ts-ignore
-  target.cropY = original.cropY - point.y;
+  target.cropY = original.cropY + point.y;
 
   // const widthPattern = target.pattern.getScaledWidth();
   // const heightPattern = target.pattern.getScaledHeight();

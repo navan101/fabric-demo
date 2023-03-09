@@ -248,7 +248,7 @@ onMounted(() => {
     top: 700,
     left: 350,
     width: 800,
-    textAlign: 'center'
+    textAlign: 'center',
   }
   addImage(fabricCanvas, img02URL, 300, 400, elementKeys);
   const textbox = fabric.EditorTextbox.fromObject(textObject);

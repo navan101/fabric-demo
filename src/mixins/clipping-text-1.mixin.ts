@@ -187,21 +187,52 @@ function addClippingMaskInteractions(prototype: any) {
 
     // @ts-ignore
     onMouseDown2(event) {
-      const { target } = event;
+      // const { target } = event;
+      // const activeObject = this.getActiveObject();
+      // if (!activeObject) {
+      //   return;
+      // }
+      // // && activeObject.type === 'clipping-text'
+      // if ((!target || activeObject.elementKey !== target.elementKey) && activeObject.isClipping) {
+      //   activeObject.resetCropModeAnchors();
+      //   this.__targetlessCanvasDrag = true;
+      //   this.__defaultCursor = this.defaultCursor;
+      //   this.defaultCursor = 'move';
+      //   this.selectable = false;
+      //   this.evented = false;
+      //   // activeObject.isClipping = false;
+      //   // activeObject.set('isClipping', false);
+      //   this.defaultCursor = 'default';
+      //   this.requestRenderAll();
+      // }
       const activeObject = this.getActiveObject();
-      if (!activeObject) {
+      if (!activeObject || activeObject.__corner) {
         return;
       }
-      // && activeObject.type === 'clipping-text'
-      if ((!target || activeObject.elementKey !== target.elementKey) && activeObject.isClipping) {
+      const {
+        tlS, trS, blS, brS,
+      } = activeObject.oCoords;
+
+      if (!tlS || !trS || !blS || !brS) {
+        return;
+      }
+      const points = [{ x: tlS.x, y: tlS.y }, { x: trS.x, y: trS.y }, { x: brS.x, y: brS.y }, { x: blS.x, y: blS.y }];
+      const pointer = this.getPointer(event, true);
+      const intersect = containsPoint(pointer, points);
+      if (intersect) {
         activeObject.resetCropModeAnchors();
+        // @ts-ignore
         this.__targetlessCanvasDrag = true;
+        // @ts-ignore
         this.__defaultCursor = this.defaultCursor;
+        // @ts-ignore
         this.defaultCursor = 'move';
+        // @ts-ignore
         this.selectable = false;
+        // @ts-ignore
         this.evented = false;
-        // activeObject.isClipping = false;
-        // activeObject.set('isClipping', false);
+      } else {
+        activeObject.isClipping = false;
         this.defaultCursor = 'default';
         this.requestRenderAll();
       }
@@ -277,17 +308,18 @@ function addClippingMaskInteractions(prototype: any) {
       } else if (cropX > distanceX) {
         cropX = distanceX;
       }
+
       if (cropY < -distanceY) {
         cropY = -distanceY;
       } else if (cropY > distanceY) {
         cropY = distanceY;
       }
-      const center = this.getCenterPoint();
-      const centerPattern = this.clippingPath.getCenterPoint();
-      const pointCrop = new Point(cropX, cropY);
+      const center = this.getRelativeCenterPoint();
+      const centerClippingPath = this.clippingPath.getRelativeCenterPoint();
+      const pointCrop = new fabric.Point(cropX, cropY);
       const point = fabric.util.rotateVector(pointCrop, fabric.util.degreesToRadians(this.angle));
-      // this.clippingPath.left += (center.x - centerPattern.x) - point.x;
-      // this.clippingPath.top += (center.y - centerPattern.y) - point.y;
+      this.clippingPath.left += (center.x - centerClippingPath.x) - point.x;
+      this.clippingPath.top += (center.y - centerClippingPath.y) - point.y;
       this.cropX = cropX;
       this.cropY = cropY;
       // this.lastTop = this.clippingPath.top;
@@ -327,124 +359,6 @@ function addClippingMaskInteractions(prototype: any) {
 }
 
 export function extendWithClippingText(EditorClippingText: any) {
-  // // @ts-ignore
-  // Object.defineProperty(EditorClippingText.prototype, 'isClipping', {
-  //   get() {
-  //     return !!this.__isClipping;
-  //   },
-  //   set(value) {
-  //     const fabricCanvas = this.canvas;
-  //     if (!fabricCanvas) {
-  //       this.__isClipping = false;
-  //       return;
-  //     }
-  //     // eslint-disable-next-line no-param-reassign
-  //     value = !!value;
-  //     if (value === this.isClipping) {
-  //       return;
-  //     }
-  //     this.__isClipping = value;
-  //     if (value) {
-  //       if (!this.clippingPath.canvas) {
-  //         this.clippingPath.canvas = fabricCanvas;
-  //       }
-  //       // handle crop mode enter
-  //       isolateObjectForEdit(this);
-  //       // this.lockClippingMove();
-
-  //       this.bindCropModeHandlers();
-  //       // after changing padding we have to recalculate corner positions
-  //       this.controls = cropControls;
-  //       // if (this.tileImageOption.enabled) {
-  //       //   this.setControlsVisibility({
-  //       //     tlS: false,
-  //       //     trS: false,
-  //       //     blS: false,
-  //       //     brS: false,
-  //       //     mlS: false,
-  //       //     mrS: false,
-  //       //   });
-  //       // } else if (this.resizeAsImage) {
-  //       //   this.setControlsVisibility({
-  //       //     tlS: true,
-  //       //     trS: true,
-  //       //     blS: true,
-  //       //     brS: true,
-  //       //     mlS: false,
-  //       //     mrS: false,
-  //       //   });
-  //       // } else {
-  //         this.setControlsVisibility({
-  //           tlS: true,
-  //           trS: true,
-  //           blS: true,
-  //           brS: true,
-  //           mlS: true,
-  //           mrS: true,
-  //         });
-  //       // }
-  //       this.setCoords();
-  //       fabricCanvas.centeredKey = 'none';
-  //       fabricCanvas.altActionKey = 'none';
-  //       fabricCanvas.selection = false;
-  //     } else {
-  //       // restore properties from before crop
-  //       unisolateObjectForEdit(this);
-  //       // this.resetClippingMove();
-
-  //       this.unbindCropModeHandlers();
-  //       fabricCanvas.centeredKey = fabric.Canvas.prototype.centeredKey;
-  //       fabricCanvas.altActionKey = fabric.Canvas.prototype.altActionKey;
-  //       fabricCanvas.selection = true;
-  //       // after changing padding we have to recalculate corner positions
-  //       this.controls = defaultControls;
-  //       if (this.resizeAsImage) {
-  //         this.setControlsVisibility({
-  //           ml: false,
-  //           mr: false,
-  //         });
-  //       } else {
-  //         this.setControlsVisibility({
-  //           ml: true,
-  //           mr: true,
-  //         });
-  //       }
-  //       this.setCoords();
-  //       fireClippingTextEvent(this, 'isClipping');
-  //     }
-  //   },
-  // });
-
-  // // @ts-ignore
-  // Object.defineProperty(EditorClippingText.prototype, 'tileImageOption', {
-  //   get() {
-  //     return this.__tileImageOption;
-  //   },
-  //   set(data) {
-  //     this.__tileImageOption = data;
-  //     if (this.__tileImageOption.enabled) {
-  //       this.setControlsVisibility({
-  //         tlS: false,
-  //         trS: false,
-  //         blS: false,
-  //         brS: false,
-  //         mlS: false,
-  //         mrS: false,
-  //       });
-  //     } else {
-  //       this.setControlsVisibility({
-  //         tlS: true,
-  //         trS: true,
-  //         blS: true,
-  //         brS: true,
-  //         mlS: true,
-  //         mrS: true,
-  //       });
-  //     }
-  //     this.setCoords();
-  //   },
-  // });
-
   // @ts-ignore
   Object.defineProperty(EditorClippingText.prototype, 'isClipping', {
     get() {
@@ -507,7 +421,41 @@ export function extendWithClippingText(EditorClippingText: any) {
         fabricCanvas.centeredKey = 'none';
         fabricCanvas.altActionKey = 'none';
         fabricCanvas.selection = false;
+
+        const centerPoint = this.getRelativeCenterPoint();
+        const rotationPoint = new fabric.Point(this.clippingPath.left, this.clippingPath.top);
+        const angleRadians = fabric.util.degreesToRadians(
+          this.angle - this.clippingPath.angle,
+        );
+        const newCoords = fabric.util.rotatePoint(
+          rotationPoint,
+          centerPoint,
+          angleRadians,
+        );
+        this.clippingPath.set({
+          left: newCoords.x,
+          top: newCoords.y,
+          angle: this.angle,
+        });
+
+        const center = this.getRelativeCenterPoint();
+        const centerClippingPath = this.clippingPath.getRelativeCenterPoint();
+        const pointCrop = new fabric.Point(this.cropX, this.cropY);
+        const point = fabric.util.rotateVector(pointCrop, fabric.util.degreesToRadians(this.angle));
+        this.clippingPath.left += (center.x - centerClippingPath.x) - point.x;
+        this.clippingPath.top += (center.y - centerClippingPath.y) - point.y;
+
+        
+        // @ts-ignore
+        this.selectable = false;
+        // @ts-ignore
+        this.evented = false;
+
       } else {
+        // @ts-ignore
+        this.selectable = true;
+        // @ts-ignore
+        this.evented = true;
         this.objectCaching = true;
         // fabricCanvas.defaultCursor = defaultCursor;
         // restore properties from before crop
@@ -520,7 +468,7 @@ export function extendWithClippingText(EditorClippingText: any) {
         fabricCanvas.altActionKey = fabric.Canvas.prototype.altActionKey;
         fabricCanvas.selection = true;
         // after changing padding we have to recalculate corner positions
-        // this.controls = imageControls;
+        this.controls = defaultControls;
         this.setCoords();
       }
       // fireClippingMaskEvent(this);
