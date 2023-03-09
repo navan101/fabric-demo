@@ -221,7 +221,7 @@ export class EditorTextbox extends fabric.Textbox {
     ctxToDraw.restore();
 
     ctxToDraw.save();
-    ctxToDraw.globalCompositeOperation = 'source-atop';
+    // ctxToDraw.globalCompositeOperation = 'source-atop';
     const dx = -this.cropX + this.clippingPath.width / 2 - this.width / 2;
     const dy = -this.cropY + this.clippingPath.height / 2 - this.height / 2;
     ctxToDraw.translate(dx, dy);

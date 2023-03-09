@@ -236,8 +236,7 @@ function addClippingMaskInteractions(prototype: any) {
         const newPoint = fabric.util.transformPoint(point, transf);
         activeObject.cropX -= newPoint.x;
         activeObject.cropY -= newPoint.y;
-        console.log('moving')
-        // activeObject.fire('moving');
+        activeObject.fire('moving');
         this.requestRenderAll();
       }
     },
@@ -292,17 +291,12 @@ function addClippingMaskInteractions(prototype: any) {
           cropY = height - this.height;
           newPoint.y = height - this.cropY - this.height;
         }
-        // this.cropX = cropX;
-        // this.cropY = cropY;
+        this.cropX = cropX;
+        this.cropY = cropY;
         this.lastTop = this.top;
         this.lastLeft = this.left;
         this.top = this.lastEventTop;
         this.left = this.lastEventLeft;
-        this.set({
-          cropX,
-          cropY
-        })
-        // fireClippingMaskEvent(this);
       }
     },
 
