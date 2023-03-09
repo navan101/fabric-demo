@@ -141,11 +141,13 @@ export class EditorTextbox extends fabric.Textbox {
 
   getOriginalElementWidth() {
     // @ts-ignore
+    // eslint-disable-next-line max-len
     return this.clippingPath._originalElement ? this.clippingPath._originalElement.naturalWidth || this.clippingPath._originalElement.width : 0;
   }
 
   getOriginalElementHeight() {
-     // @ts-ignore
+    // @ts-ignore
+    // eslint-disable-next-line max-len
     return this.clippingPath._originalElement ? this.clippingPath._originalElement.naturalHeight || this.clippingPath._originalElement.height : 0;
   }
 
@@ -161,8 +163,6 @@ export class EditorTextbox extends fabric.Textbox {
       const clipPathScaleFactorY = this.clippingPath.scaleY;
       ctx.save();
       ctx.globalAlpha = 0.5;
-      const dx = -this.cropX + this.clippingPath.width / 2 - this.width / 2;
-      const dy = -this.cropY + this.clippingPath.height / 2 - this.height / 2;
       ctx.translate(-this.cropX, -this.cropY);
       ctx.scale(clipPathScaleFactorX, clipPathScaleFactorY);
       this.clippingPath._render(ctx);
@@ -200,9 +200,7 @@ export class EditorTextbox extends fabric.Textbox {
 
     ctxToDraw.save();
     ctxToDraw.globalCompositeOperation = 'source-atop';
-    const dx = -this.cropX + this.clippingPath.width / 2 - this.width / 2;
-    const dy = -this.cropY + this.clippingPath.height / 2 - this.height / 2;
-    // ctxToDraw.translate(dx, dy);
+    ctxToDraw.translate(-this.cropX, -this.cropY);
     ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
     this.clippingPath._render(ctxToDraw);
     ctxToDraw.restore();
