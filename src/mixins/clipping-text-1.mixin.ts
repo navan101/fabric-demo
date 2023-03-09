@@ -277,8 +277,6 @@ function addClippingMaskInteractions(prototype: any) {
       } else if (cropX > distanceX) {
         cropX = distanceX;
       }
-      console.log(distanceY, 'distanceY')
-      console.log(cropY, 'cropY')
       if (cropY < -distanceY) {
         cropY = -distanceY;
       } else if (cropY > distanceY) {
@@ -294,38 +292,6 @@ function addClippingMaskInteractions(prototype: any) {
       this.cropY = cropY;
       // this.lastTop = this.clippingPath.top;
       // this.lastLeft = this.clippingPath.left;
-      // if (this.isClipping) {
-      //   const top = this.lastTop === undefined ? this.lastEventTop : this.lastTop;
-      //   const left = this.lastLeft === undefined ? this.lastEventLeft : this.lastLeft;
-      //   const pt = new fabric.Point(left - this.left, top - this.top);
-      //   const point = fabric.util.transformPoint(
-      //     pt,
-      //     this.moveTransformationMatrix,
-      //   );
-      //   // const width = (this.clippingPath._element.naturalWidth || this.clippingPath._element.width) * this.clippingPath.scaleX;
-      //   // const height = (this.clippingPath._element.naturalHeight || this.clippingPath._element.height) * this.clippingPath.scaleY;
-      //   const width = this.clippingPath.getScaledWidth();
-      //   const height = this.clippingPath.getScaledHeight();
-      //   const { x, y } = point;
-      //   let cropX = this.cropX + x;
-      //   let cropY = this.cropY + y;
-      //   if (cropX < 0) {
-      //     cropX = -(width - this.width) / 2;
-      //   } else if (cropX + this.width > width) {
-      //     cropX = (width - this.width) / 2;
-      //   }
-      //   if (cropY < 0) {
-      //     cropY = 0;
-      //   } else if (cropY + this.height > height) {
-      //     cropY = height - this.height;
-      //   }
-      //   this.cropX = cropX;
-      //   this.cropY = cropY;
-      //   this.lastTop = this.top;
-      //   this.lastLeft = this.left;
-      //   this.top = this.lastEventTop;
-      //   this.left = this.lastEventLeft;
-      // }
     },
 
     _drawClippingLines(ctx: CanvasRenderingContext2D) {
