@@ -124,25 +124,13 @@ function checkRelativePositionBetweenElementsClippingText(
     originalImage.scale(scaleToHeight);
     originalImage.scaleX = scale * originalImage.scaleY;
   }
+  const imageLeft = originalClipPath.left - ((originalImage.getScaledWidth() - originalClipPath.getScaledWidth()) / 2);
+  const imageTop = originalClipPath.top - ((originalImage.getScaledHeight() - originalClipPath.getScaledHeight()) / 2);
 
-  const centerPoint = originalClipPath.getCenterPoint();
-  const imageLeft = centerPoint.x - (originalImage.getScaledWidth()) / 2;
-  const imageTop = centerPoint.y - (originalImage.getScaledHeight()) / 2;
-
-  const rotationPoint = new fabric.Point(imageLeft, imageTop);
-  const angleRadians = fabric.util.degreesToRadians(
-    originalClipPath.angle,
-  );
-  const newCoords = fabric.util.rotatePoint(
-    rotationPoint,
-    centerPoint,
-    angleRadians,
-  );
   originalImage.set({
-    left: newCoords.x,
-    top: newCoords.y,
-    angle: originalClipPath.angle,
-  });
+    left: imageLeft,
+    top: imageTop,
+  })
   originalImage.setCoords();
 }
 
@@ -155,12 +143,16 @@ function createClipText1() {
       return;
     }
     checkRelativePositionBetweenElementsClippingText(originalImage, fabricActiveObject)
-    fabricActiveObject.set('clippingPath', originalImage)
-    // fabricActiveObject.clippingPath = originalImage;
-    Object.assign(fabricActiveObject, fabricActiveObject.calcTextByClipPath());
-    // fabricActiveObject.set('clippingPath', originalImage)
-    canvas.remove(originalImage);
-    fabricCanvas.requestRenderAll();
+    fabric.Image.fromURL(originalImage.toDataURL()).then((image) => {
+      image.top = originalImage.top;
+      image.left = originalImage.left;
+      fabricActiveObject.set('clippingPath', image)
+      // @ts-ignore
+      Object.assign(fabricActiveObject, fabricActiveObject.calcTextByClipPath());
+      canvas.remove(originalImage);
+      fabricCanvas.requestRenderAll();
+    })
+    
   }
 
   function createClipText() {

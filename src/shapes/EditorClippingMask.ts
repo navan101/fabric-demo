@@ -348,6 +348,8 @@ export class EditorClippingMask extends EditorImage {
     const point2 = clippingPath.getPointByOrigin(clippingPath.originX, clippingPath.originY);
     const cropX = (point2.x - point1.x) || 0;
     const cropY = (point2.y - point1.y) || 0;
+    console.log(cropX, 'cropX')
+    console.log(cropY, 'cropY')
     const width = clippingPath.getScaledWidth();
     const height = clippingPath.getScaledHeight();
     const { tl } = clippingPath.calcACoords();

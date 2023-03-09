@@ -8,175 +8,175 @@ import { containsPoint } from '../shared/utility';
 import { isolateObjectForEdit, unisolateObjectForEdit } from './cropping.mixin';
 
 // @ts-ignore
-function addClippingTextInteractions(prototype) {
-  const clippingTextCustom: any = {
-    cropBorderColor: '#43b9d3',
-    cropBorderScaleFactor: 2,
-    cropCornerStyle: 'default',
-    cropDarkLayer: '#16191e',
-    cropLinesColor: '#f6f7fa',
-    croppingBeforeVals: ['stroke', 'strokeWidth', 'cornerSize'],
+// function addClippingTextInteractions(prototype) {
+//   const clippingTextCustom: any = {
+//     cropBorderColor: '#43b9d3',
+//     cropBorderScaleFactor: 2,
+//     cropCornerStyle: 'default',
+//     cropDarkLayer: '#16191e',
+//     cropLinesColor: '#f6f7fa',
+//     croppingBeforeVals: ['stroke', 'strokeWidth', 'cornerSize'],
 
-    bindCropModeHandlers() {
-      // Ensure no double-binding
-      this.unbindCropModeHandlers();
-      this.on('moving', this.cropModeHandlerMoveImage);
-      this.canvas.on('mouse:up', this.onMouseUp);
-      this.canvas.on('mouse:down', this.onMouseDown2);
-      this.canvas.on('mouse:move', this.onMouseMove);
-      window.addEventListener('mousedown', this.eventListener);
-    },
+//     bindCropModeHandlers() {
+//       // Ensure no double-binding
+//       this.unbindCropModeHandlers();
+//       this.on('moving', this.cropModeHandlerMoveImage);
+//       this.canvas.on('mouse:up', this.onMouseUp);
+//       this.canvas.on('mouse:down', this.onMouseDown2);
+//       this.canvas.on('mouse:move', this.onMouseMove);
+//       window.addEventListener('mousedown', this.eventListener);
+//     },
 
-    unbindCropModeHandlers() {
-      this.off('moving', this.cropModeHandlerMoveImage);
-      this.canvas.off('mouse:up', this.onMouseUp);
-      this.canvas.off('mouse:down', this.onMouseDown2);
-      this.canvas.off('mouse:move', this.onMouseMove);
-      window.removeEventListener('mousedown', this.eventListener);
-    },
+//     unbindCropModeHandlers() {
+//       this.off('moving', this.cropModeHandlerMoveImage);
+//       this.canvas.off('mouse:up', this.onMouseUp);
+//       this.canvas.off('mouse:down', this.onMouseDown2);
+//       this.canvas.off('mouse:move', this.onMouseMove);
+//       window.removeEventListener('mousedown', this.eventListener);
+//     },
 
-    onMouseUp() {
-      delete this.moveClipping;
-      this.defaultCursor = this.__defaultCursor;
-      delete this.__defaultCursor;
-      const activeObject = this.getActiveObject();
-      if (activeObject?.patternMoving) {
-        fireClippingTextEvent(activeObject, 'onMouseUp');
-        delete activeObject.patternMoving;
-      }
-    },
+//     onMouseUp() {
+//       delete this.moveClipping;
+//       this.defaultCursor = this.__defaultCursor;
+//       delete this.__defaultCursor;
+//       const activeObject = this.getActiveObject();
+//       if (activeObject?.patternMoving) {
+//         fireClippingTextEvent(activeObject, 'onMouseUp');
+//         delete activeObject.patternMoving;
+//       }
+//     },
 
-    onMouseDown2(event: any) {
-      const activeObject = this.getActiveObject();
-      if (!activeObject || activeObject.__corner) {
-        return;
-      }
-      const {
-        tlS, trS, blS, brS,
-      } = activeObject.oCoords;
+//     onMouseDown2(event: any) {
+//       const activeObject = this.getActiveObject();
+//       if (!activeObject || activeObject.__corner) {
+//         return;
+//       }
+//       const {
+//         tlS, trS, blS, brS,
+//       } = activeObject.oCoords;
 
-      if (!tlS || !trS || !blS || !brS) {
-        return;
-      }
-      const points = [{ x: tlS.x, y: tlS.y }, { x: trS.x, y: trS.y }, { x: brS.x, y: brS.y }, { x: blS.x, y: blS.y }];
-      const pointer = this.getPointer(event, true);
-      const intersect = containsPoint(pointer, points);
-      if (intersect) {
-        this.moveClipping = true;
-        this.selectable = false;
-        this.evented = false;
-      } else {
-        activeObject.isClipping = false;
-        this.defaultCursor = 'default';
-        this.requestRenderAll();
-      }
-    },
+//       if (!tlS || !trS || !blS || !brS) {
+//         return;
+//       }
+//       const points = [{ x: tlS.x, y: tlS.y }, { x: trS.x, y: trS.y }, { x: brS.x, y: brS.y }, { x: blS.x, y: blS.y }];
+//       const pointer = this.getPointer(event, true);
+//       const intersect = containsPoint(pointer, points);
+//       if (intersect) {
+//         this.moveClipping = true;
+//         this.selectable = false;
+//         this.evented = false;
+//       } else {
+//         activeObject.isClipping = false;
+//         this.defaultCursor = 'default';
+//         this.requestRenderAll();
+//       }
+//     },
 
-    onMouseMove(event: any) {
-      const { e } = event;
-      const activeObject = this.getActiveObject();
-      if (!activeObject || activeObject.__corner) {
-        return;
-      }
-      const {
-        tlS, trS, blS, brS,
-      } = activeObject.oCoords;
+//     onMouseMove(event: any) {
+//       const { e } = event;
+//       const activeObject = this.getActiveObject();
+//       if (!activeObject || activeObject.__corner) {
+//         return;
+//       }
+//       const {
+//         tlS, trS, blS, brS,
+//       } = activeObject.oCoords;
 
-      if (!tlS || !trS || !blS || !brS) {
-        return;
-      }
-      const pointer = this.getPointer(e, true);
-      const points = [{ x: tlS.x, y: tlS.y }, { x: trS.x, y: trS.y }, { x: brS.x, y: brS.y }, { x: blS.x, y: blS.y }];
-      const intersect = containsPoint(pointer, points);
-      this.defaultCursor = intersect ? 'move' : 'default';
+//       if (!tlS || !trS || !blS || !brS) {
+//         return;
+//       }
+//       const pointer = this.getPointer(e, true);
+//       const points = [{ x: tlS.x, y: tlS.y }, { x: trS.x, y: trS.y }, { x: brS.x, y: brS.y }, { x: blS.x, y: blS.y }];
+//       const intersect = containsPoint(pointer, points);
+//       this.defaultCursor = intersect ? 'move' : 'default';
 
-      if (!this.moveClipping) {
-        return;
-      }
-      const offset: any = {
-        x: e.movementX,
-        y: e.movementY,
-      };
-      const matrix = activeObject.calcTransformMatrix();
-      const newMatrix: any = [matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]];
-      if ((activeObject.flipX || activeObject.flipY) && activeObject.angle === 0) {
-        newMatrix[0] = Math.abs(matrix[0]);
-        newMatrix[3] = Math.abs(matrix[3]);
-      }
-      const vpt = this.viewportTransform;
-      const invertTransform = fabric.util.invertTransform(
-        fabric.util.multiplyTransformMatrices(vpt, newMatrix),
-      );
-      invertTransform[4] = 0;
-      invertTransform[5] = 0;
-      const newPoint = fabric.util.transformPoint(offset, invertTransform);
-      activeObject.cropX -= newPoint.x;
-      activeObject.cropY -= newPoint.y;
-      activeObject.pattern.setCoords();
-      activeObject.dirty = true;
-      activeObject.fire('moving');
-      this.requestRenderAll();
-    },
+//       if (!this.moveClipping) {
+//         return;
+//       }
+//       const offset: any = {
+//         x: e.movementX,
+//         y: e.movementY,
+//       };
+//       const matrix = activeObject.calcTransformMatrix();
+//       const newMatrix: any = [matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]];
+//       if ((activeObject.flipX || activeObject.flipY) && activeObject.angle === 0) {
+//         newMatrix[0] = Math.abs(matrix[0]);
+//         newMatrix[3] = Math.abs(matrix[3]);
+//       }
+//       const vpt = this.viewportTransform;
+//       const invertTransform = fabric.util.invertTransform(
+//         fabric.util.multiplyTransformMatrices(vpt, newMatrix),
+//       );
+//       invertTransform[4] = 0;
+//       invertTransform[5] = 0;
+//       const newPoint = fabric.util.transformPoint(offset, invertTransform);
+//       activeObject.cropX -= newPoint.x;
+//       activeObject.cropY -= newPoint.y;
+//       activeObject.pattern.setCoords();
+//       activeObject.dirty = true;
+//       // activeObject.fire('moving');
+//       this.requestRenderAll();
+//     },
 
-    cropModeHandlerMoveImage() {
-      if (!this.isClipping) {
-        return;
-      }
-      const width = this.pattern.getScaledWidth();
-      const height = this.pattern.getScaledHeight();
-      const w = this.getScaledWidth();
-      const h = this.getScaledHeight();
-      const distanceX = (width - w) / 2;
-      const distanceY = (height - h) / 2;
-      let { cropX } = this;
-      let { cropY } = this;
-      // verify bounds
-      if (cropX < -distanceX) {
-        cropX = -distanceX;
-      } else if (cropX > distanceX) {
-        cropX = distanceX;
-      }
+//     cropModeHandlerMoveImage() {
+//       if (!this.isClipping) {
+//         return;
+//       }
+//       const width = this.pattern.getScaledWidth();
+//       const height = this.pattern.getScaledHeight();
+//       const w = this.getScaledWidth();
+//       const h = this.getScaledHeight();
+//       const distanceX = (width - w) / 2;
+//       const distanceY = (height - h) / 2;
+//       let { cropX } = this;
+//       let { cropY } = this;
+//       // verify bounds
+//       if (cropX < -distanceX) {
+//         cropX = -distanceX;
+//       } else if (cropX > distanceX) {
+//         cropX = distanceX;
+//       }
 
-      if (cropY < -distanceY) {
-        cropY = -distanceY;
-      } else if (cropY > distanceY) {
-        cropY = distanceY;
-      }
-      const center = this.getCenterPoint();
-      const centerPattern = this.pattern.getCenterPoint();
-      const pointCrop = new Point(cropX, cropY);
-      const point = fabric.util.rotateVector(pointCrop, fabric.util.degreesToRadians(this.angle));
-      this.pattern.left += (center.x - centerPattern.x) - point.x;
-      this.pattern.top += (center.y - centerPattern.y) - point.y;
-      this.cropX = cropX;
-      this.cropY = cropY;
-      this.lastTop = this.pattern.top;
-      this.lastLeft = this.pattern.left;
-      this.patternMoving = true;
-    },
-  }
-  extend(prototype, clippingTextCustom);
-}
+//       if (cropY < -distanceY) {
+//         cropY = -distanceY;
+//       } else if (cropY > distanceY) {
+//         cropY = distanceY;
+//       }
+//       const center = this.getCenterPoint();
+//       const centerPattern = this.pattern.getCenterPoint();
+//       const pointCrop = new Point(cropX, cropY);
+//       const point = fabric.util.rotateVector(pointCrop, fabric.util.degreesToRadians(this.angle));
+//       this.pattern.left += (center.x - centerPattern.x) - point.x;
+//       this.pattern.top += (center.y - centerPattern.y) - point.y;
+//       this.cropX = cropX;
+//       this.cropY = cropY;
+//       this.lastTop = this.pattern.top;
+//       this.lastLeft = this.pattern.left;
+//       this.patternMoving = true;
+//     },
+//   }
+//   extend(prototype, clippingTextCustom);
+// }
 
 function addClippingMaskInteractions(prototype: any) {
 
   const clippingMask: any = {
     bindCropModeHandlers() {
-      // this.unbindCropModeHandlers();
-      // this.on('moving', this.cropModeHandlerMoveImage);
-      // this.on('mousedown', this.resetCropModeAnchors);
-      // this.canvas.on('mouse:up', this.onMouseUp);
-      // this.canvas.on('mouse:down', this.onMouseDown2);
-      // this.canvas.on('mouse:move', this.onMouseMove);
-      // window.addEventListener('mousedown', this.eventListener);
+      this.unbindCropModeHandlers();
+      this.on('moving', this.cropModeHandlerMoveImage);
+      this.on('mousedown', this.resetCropModeAnchors);
+      this.canvas.on('mouse:up', this.onMouseUp);
+      this.canvas.on('mouse:down', this.onMouseDown2);
+      this.canvas.on('mouse:move', this.onMouseMove);
+      window.addEventListener('mousedown', this.eventListener);
     },
     unbindCropModeHandlers() {
-      // this.off('moving', this.cropModeHandlerMoveImage);
-      // this.off('mousedown', this.resetCropModeAnchors);
-      // this.canvas.off('mouse:up', this.onMouseUp);
-      // this.canvas.off('mouse:down', this.onMouseDown2);
-      // this.canvas.off('mouse:move', this.onMouseMove);
-      // window.removeEventListener('mousedown', this.eventListener);
+      this.off('moving', this.cropModeHandlerMoveImage);
+      this.off('mousedown', this.resetCropModeAnchors);
+      this.canvas.off('mouse:up', this.onMouseUp);
+      this.canvas.off('mouse:down', this.onMouseDown2);
+      this.canvas.off('mouse:move', this.onMouseMove);
+      window.removeEventListener('mousedown', this.eventListener);
     },
 
     onMouseUp() {
@@ -194,25 +194,12 @@ function addClippingMaskInteractions(prototype: any) {
       }
       // && activeObject.type === 'clipping-text'
       if ((!target || activeObject.elementKey !== target.elementKey) && activeObject.isClipping) {
-        const { tlS, trS, blS, brS } = activeObject.oCoords;
-        const vs = [{ x: tlS.x, y: tlS.y },
-        { x: trS.x, y: trS.y },
-        { x: brS.x, y: brS.y },
-        { x: blS.x, y: blS.y }];
-        if (activeObject.__corner) {
-          return;
-        }
-        const pointer = this.getPointer(event, true);
-        const checkClickInside = containsPoint(pointer, vs);
-        if (checkClickInside) {
-          activeObject.resetCropModeAnchors();
-          this.__targetlessCanvasDrag = true;
-          this.__defaultCursor = this.defaultCursor;
-          this.defaultCursor = 'move';
-          this.selectable = false;
-          this.evented = false;
-          return;
-        }
+        activeObject.resetCropModeAnchors();
+        this.__targetlessCanvasDrag = true;
+        this.__defaultCursor = this.defaultCursor;
+        this.defaultCursor = 'move';
+        this.selectable = false;
+        this.evented = false;
         // activeObject.isClipping = false;
         // activeObject.set('isClipping', false);
         this.defaultCursor = 'default';
@@ -228,9 +215,9 @@ function addClippingMaskInteractions(prototype: any) {
       // console.log(evt.type, 'evt.type');
       // console.log(activeObject, 'activeObject');
       if (
-        // this.__targetlessCanvasDrag
-        // && evt.type === 'mousemove'
-        // && 
+        this.__targetlessCanvasDrag
+        && evt.type === 'mousemove'
+        && 
         activeObject
       ) {
         // console.log('onMouseMove');
@@ -249,7 +236,8 @@ function addClippingMaskInteractions(prototype: any) {
         const newPoint = fabric.util.transformPoint(point, transf);
         activeObject.cropX -= newPoint.x;
         activeObject.cropY -= newPoint.y;
-        activeObject.fire('moving');
+        console.log('moving')
+        // activeObject.fire('moving');
         this.requestRenderAll();
       }
     },

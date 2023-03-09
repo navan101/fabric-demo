@@ -286,13 +286,18 @@ export function checkRelativePositionBetweenElementsClippingText(
     const imageElementKey = elementKeys[1];
     const originalImage = getFabricElementByKey(canvas, imageElementKey);
     const fabricActiveObject = fabricCanvas.getActiveObject();
-    checkRelativePositionBetweenElementsClippingText(originalImage, fabricActiveObject)
-    fabricActiveObject.set('clippingPath', originalImage)
-    // fabricActiveObject.clippingPath = originalImage;
-    Object.assign(fabricActiveObject, fabricActiveObject.calcTextByClipPath());
-    // fabricActiveObject.set('clippingPath', originalImage)
-    canvas.remove(originalImage);
-    fabricCanvas.requestRenderAll();
+    checkRelativePositionBetweenElementsClippingText(originalImage, fabricActiveObject);
+    fabric.Image.fromURL(originalImage.toDataURL()).then((image) => {
+      console.log(image.scaleX, 'image')
+      // fabricCanvas.add(image)
+      fabricActiveObject.set('clippingPath', originalImage)
+      // fabricActiveObject.clippingPath = originalImage;
+      Object.assign(fabricActiveObject, fabricActiveObject.calcTextByClipPath());
+      // fabricActiveObject.set('clippingPath', originalImage)
+      canvas.remove(originalImage);
+      fabricCanvas.requestRenderAll();
+    })
+
   }
 
   function checkRelativePositionBetweenElementsClippingText(

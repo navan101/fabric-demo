@@ -326,6 +326,8 @@ var EditorClippingMask = /** @class */ (function (_super) {
         var point2 = clippingPath.getPointByOrigin(clippingPath.originX, clippingPath.originY);
         var cropX = (point2.x - point1.x) || 0;
         var cropY = (point2.y - point1.y) || 0;
+        console.log(cropX, 'cropX');
+        console.log(cropY, 'cropY');
         var width = clippingPath.getScaledWidth();
         var height = clippingPath.getScaledHeight();
         var tl = clippingPath.calcACoords().tl;

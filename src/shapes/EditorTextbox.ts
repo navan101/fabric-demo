@@ -4,6 +4,45 @@ import { extend } from 'lodash';
 import { extendWithClippingText } from '../mixins/clipping-text-1.mixin';
 import { TClassProperties } from '../typedefs';
 
+// fabric.Object.prototype._getTransformedDimensions = function(options: any = {}): fabric.Point {
+//   const dimOptions = {
+//     scaleX: this.scaleX,
+//     scaleY: this.scaleY,
+//     skewX: this.skewX,
+//     skewY: this.skewY,
+//     // @ts-ignore
+//     width: this.isClipping ? this.clippingPath.getScaledWidth() :  this.width,
+//     // @ts-ignore
+//     height: this.isClipping ? this.clippingPath.getScaledHeight() : this.height,
+//     strokeWidth: this.strokeWidth,
+//     ...options,
+//   };
+//   // stroke is applied before/after transformations are applied according to `strokeUniform`
+//   const strokeWidth = dimOptions.strokeWidth;
+//   let preScalingStrokeValue = strokeWidth,
+//     postScalingStrokeValue = 0;
+
+//   if (this.strokeUniform) {
+//     preScalingStrokeValue = 0;
+//     postScalingStrokeValue = strokeWidth;
+//   }
+//   const dimX = dimOptions.width + preScalingStrokeValue,
+//     dimY = dimOptions.height + preScalingStrokeValue,
+//     noSkew = dimOptions.skewX === 0 && dimOptions.skewY === 0;
+//   let finalDimensions;
+//   if (noSkew) {
+//     finalDimensions = new fabric.Point(
+//       dimX * dimOptions.scaleX,
+//       dimY * dimOptions.scaleY
+//     );
+//   } else {
+//     finalDimensions = fabric.util.sizeAfterTransform(dimX, dimY, dimOptions);
+//   }
+
+//   return finalDimensions.scalarAdd(postScalingStrokeValue);
+
+// }
+
 export class EditorTextbox extends fabric.Textbox {
 
   isClipping?: boolean;
@@ -102,8 +141,8 @@ export class EditorTextbox extends fabric.Textbox {
 
   _render(ctx: CanvasRenderingContext2D) {
     super._render(ctx);
-    // this._renderClippingBackground(ctx);
     this._renderClippingText(ctx);
+    // this._renderClippingBackground(ctx);
   }
   _renderClippingBackground(ctx: CanvasRenderingContext2D) {
     if (this.isClipping) {
@@ -116,10 +155,21 @@ export class EditorTextbox extends fabric.Textbox {
       ctx.globalAlpha = this.cropOpacity;
       // const padding = this.getElementPadding();
       const padding = 0;
-      const elWidth = this.clippingPath.width;
-      const elHeight = this.clippingPath.height;
-      const imageCopyX = -this.cropX - elWidth / 2;
-      const imageCopyY = -this.cropY - elHeight / 2;
+      // const width = this.clippingPath.width;
+      // const height = this.clippingPath.height;
+      // @ts-ignore
+      // const elWidth = this.clippingPath.getElementWidth();
+      const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
+      // @ts-ignore
+      const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
+      // @ts-ignore
+      // const elHeight = this.clippingPath.getElementHeight();
+      // const imageCopyX = -this.cropX - width / 2;
+      // const imageCopyY = -this.cropY - height / 2;
+      // const dx = -this.cropX + this.clippingPath.width - this.width / 2;
+      // const dy = -this.cropY + this.clippingPath.height - this.height / 2;
+      const imageCopyX = -this.cropX - width / 2;
+      const imageCopyY = -this.cropY - height / 2;
       ctx.scale(clipPathScaleFactorX, clipPathScaleFactorY);
       ctx.drawImage(
         elementToDraw,
@@ -130,15 +180,22 @@ export class EditorTextbox extends fabric.Textbox {
       );
       ctx.restore();
       ctx.globalAlpha = 1;
+
+      // ctx.save();
+      // ctx.globalAlpha = 0.5;
+      // // ctxToDraw.globalCompositeOperation = 'source-atop';
+      // ctx.scale(clipPathScaleFactorX, clipPathScaleFactorY);
+      // this.clippingPath._render(ctx);
+      // ctx.restore();
+      // ctx.globalAlpha = 1;
+
     }
   }
 
   _renderClippingText(ctx: CanvasRenderingContext2D) {
-    // console.log(this.clippingPath, 'this.clippingPath');
     if (!this.clippingPath || this.isNotVisible()) {
       return;
     }
-    // console.log(this.clippingPath, 'this.clippingPath');
     const clipPathScaleFactorX = this.clippingPath.scaleX;
     const clipPathScaleFactorY = this.clippingPath.scaleY;
     if (!this._cacheClippingPathCanvas) {
@@ -160,101 +217,28 @@ export class EditorTextbox extends fabric.Textbox {
     ctxToDraw.setTransform(transform);
 
     ctxToDraw.save();
-    // const path = this.path;
-    // path && !path.isNotVisible() && path._render(ctx);
-    // this._setTextStyles(ctx);
-    // this._renderTextLinesBackground(ctx);
-    // this._renderTextDecoration(ctx, 'underline');
     this._renderText(ctxToDraw);
-    // this._renderTextDecoration(ctx, 'overline');
-    // this._renderTextDecoration(ctx, 'linethrough');
     ctxToDraw.restore();
-
 
     ctxToDraw.save();
-    // ctxToDraw.globalCompositeOperation = 'source-atop';
+    ctxToDraw.globalCompositeOperation = 'source-atop';
+    const dx = -this.cropX + this.clippingPath.width / 2 - this.width / 2;
+    const dy = -this.cropY + this.clippingPath.height / 2 - this.height / 2;
+    ctxToDraw.translate(dx, dy);
     ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
     this.clippingPath._render(ctxToDraw);
-    ctxToDraw.restore();
-
-    // ctxToDraw.save();
-    // ctxToDraw.globalCompositeOperation = 'source-atop';
-    // ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
-
-
-    // const elementToDraw = this.clippingPath.getElement();
-    // if (!elementToDraw) {
-    //   return;
-    // }
-    // // @ts-ignore
-    // const scaleX = this.clippingPath._filterScalingX;
-    // // @ts-ignore
-    // const scaleY = this.clippingPath._filterScalingY;
-    // const w = this.clippingPath.width;
-    // const h = this.clippingPath.height;
-    // // crop values cannot be lesser than 0.
-    // const cropX = Math.max(this.cropX, 0);
-    // const cropY = Math.max(this.cropY, 0);
-    // // const cropY = this.cropY
-    // // console.log(cropY, 'cropY');
-    // // @ts-ignore
-    // const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
-    // // @ts-ignore
-    // const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
-    // const sX = cropX * scaleX;
-    // const sY = cropY * scaleY;
-    // // the width height cannot exceed element width/height, starting from the crop offset.
-    // const sW = Math.min(w * scaleX, elWidth - sX);
-    // const sH = Math.min(h * scaleY, elHeight - sY);
-    // const x = -w / 2;
-    // const y = -h / 2;
-    // const maxDestW = Math.min(w, elWidth / scaleX - cropX);
-    // const maxDestH = Math.min(h, elHeight / scaleY - cropY);
-
-    // // console.log(sX, sY, sW, sH, x, y, maxDestW, maxDestH, 'sX, sY, sW, sH, x, y, maxDestW, maxDestH');
-    // elementToDraw &&
-    //   ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
-
-    // ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
-
-    // const { width } = this;
-    // const { height } = this;
-    // ctx.globalAlpha = this.cropOpacity;
-    // const padding = this.getElementPadding();
-    // const padding = 0;
-    // const elWidth = this.getElementWidth() - padding;
-    // const elHeight = this.getElementHeight() - padding;
-    // const imageCopyX = -this.cropX - w / 2;
-    // const imageCopyY = -this.cropY - (h * this.clippingPath.scaleY) / 2 - h / 2;
-    // console.log(this.height, 'this.height');
-
-    // const imageCopyX = -this.cropX - w / 2;
-
-    // const imageCopyY = -this.cropY - h / 2;
-
-    // console.log(this.cropY, 'this.cropY');
-    // console.log(h, 'h');
-    // console.log(this.cropY + imageCopyY, 'this.cropY + imageCopyY');
-
-    // canvas.width / 2 - width / 2,
-    //       canvas.height / 2 - height / 2,
-
-    // ctxToDraw.drawImage(
-    //   elementToDraw,
-    //   this.cropX + imageCopyX,
-    //   this.cropY + imageCopyY,
-    //   elWidth,
-    //   elHeight,
-    // );
     ctxToDraw.restore();
 
 
     if (this.isClipping) {
       ctx.save();
       ctx.globalAlpha = 0.5;
+      const dx = -this.cropX + this.clippingPath.width / 2 - this.width / 2;
+      const dy = -this.cropY + this.clippingPath.height / 2 - this.height / 2;
+      ctx.translate(dx, dy);
       ctx.scale(clipPathScaleFactorX, clipPathScaleFactorY);
       this.clippingPath._render(ctx);
-      ctx.restore();
+      ctx.restore()
     }
 
 
@@ -265,40 +249,18 @@ export class EditorTextbox extends fabric.Textbox {
     ctx.restore();
 
     ctxToDraw.restore();
-    // console.log(ctx.canvas.toDataURL(), 'toDataURL');
-    // if (this.isClipping) {
-    //   ctx.save();
-    //   ctx.globalAlpha = 0.5;
-    //   ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
-    //   this.clippingPath._render(ctx);
-    //   ctx.restore();
-    //   this.isEditing = false;
-    // }
-    // this.pattern._element = orignalElement;
-    // console.log(this.isEditing, 'isEditing');
   }
 
   calcTextByClipPath() {
     const { clippingPath } = this;
-    // @ts-ignore
+    // // @ts-ignore
     const point1 = this.getPointByOrigin(this.originX, this.originY);
-    console.log(this.left, this.top, 'this.top, this.left');
-    console.log(point1, 'point1');
     const point2 = clippingPath.getPointByOrigin(clippingPath.originX, clippingPath.originY);
-    console.log(point2, 'point2');
     const cropX = (point1.x - point2.x) || 0;
     const cropY = (point1.y - point2.y) || 0;
-    console.log(cropX, 'cropX');
-    console.log(cropY, 'cropY');
-    // const width = clippingPath.getScaledWidth();
-    // const height = clippingPath.getScaledHeight();
-    // const { tl } = clippingPath.calcACoords();
-    // this.setPositionByOrigin(tl, 'left', 'top');
     return {
       cropX,
       cropY,
-      // width,
-      // height,
     };
   }
 

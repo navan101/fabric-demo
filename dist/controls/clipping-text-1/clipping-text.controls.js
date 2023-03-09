@@ -1,7 +1,7 @@
 import * as fabric from 'fabric';
 import { uploadImageHandler } from '../clipping-mask/clipping-mask.controls.handlers';
 import { renderUploadHandler } from '../clipping-mask/clipping-mask.controls.renders';
-import { cornerTL, cornerTR, editClippingTextHandler, scaleEquallyCrop, } from './clipping-text.controls.handlers';
+import { cornerTL, editClippingTextHandler, scaleEquallyCrop, } from './clipping-text.controls.handlers';
 import { renderEditClippingTextHandler } from './clipping-text.controls.renders';
 var _a = fabric.controlsUtils, scaleCursorStyleHandler = _a.scaleCursorStyleHandler, renderCircleControl = _a.renderCircleControl, scaleSkewStyleHandler = _a.scaleSkewCursorStyleHandler, scaleOrSkewActionName = _a.scaleOrSkewActionName;
 var controls = fabric.Object.prototype.controls;
@@ -51,18 +51,18 @@ export var cropControls = {
         // actionHandler: scaleEquallyCropTL,
         render: renderCircleControl,
     }),
-    trS: new fabric.Control({
-        x: 0.5,
-        y: -0.5,
-        // @ts-ignore
-        name: 'trS',
-        cursorStyleHandler: scaleCursorStyleHandler,
-        // @ts-ignore
-        positionHandler: cornerTR,
-        // @ts-ignore
-        actionHandler: scaleEquallyCrop,
-        render: renderCircleControl,
-    }),
+    // trS: new fabric.Control({
+    //   x: 0.5,
+    //   y: -0.5,
+    //   // @ts-ignore
+    //   name: 'trS',
+    //   cursorStyleHandler: scaleCursorStyleHandler,
+    //   // @ts-ignore
+    //   positionHandler: cornerTR,
+    //   // @ts-ignore
+    //   actionHandler: scaleEquallyCrop,
+    //   render: renderCircleControl,
+    // }),
     // blS: new fabric.Control({
     //   x: -0.5,
     //   y: 0.5,

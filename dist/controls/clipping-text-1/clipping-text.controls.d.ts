@@ -12,5 +12,4 @@ export declare const defaultControls: {
 };
 export declare const cropControls: {
     tlS: fabric.Control;
-    trS: fabric.Control;
 };

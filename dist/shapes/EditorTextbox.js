@@ -27,6 +27,41 @@ var __assign = (this && this.__assign) || function () {
 import { defaultControls } from '../controls/clipping-text-1/clipping-text.controls';
 import * as fabric from 'fabric';
 import { extendWithClippingText } from '../mixins/clipping-text-1.mixin';
+// fabric.Object.prototype._getTransformedDimensions = function(options: any = {}): fabric.Point {
+//   const dimOptions = {
+//     scaleX: this.scaleX,
+//     scaleY: this.scaleY,
+//     skewX: this.skewX,
+//     skewY: this.skewY,
+//     // @ts-ignore
+//     width: this.isClipping ? this.clippingPath.getScaledWidth() :  this.width,
+//     // @ts-ignore
+//     height: this.isClipping ? this.clippingPath.getScaledHeight() : this.height,
+//     strokeWidth: this.strokeWidth,
+//     ...options,
+//   };
+//   // stroke is applied before/after transformations are applied according to `strokeUniform`
+//   const strokeWidth = dimOptions.strokeWidth;
+//   let preScalingStrokeValue = strokeWidth,
+//     postScalingStrokeValue = 0;
+//   if (this.strokeUniform) {
+//     preScalingStrokeValue = 0;
+//     postScalingStrokeValue = strokeWidth;
+//   }
+//   const dimX = dimOptions.width + preScalingStrokeValue,
+//     dimY = dimOptions.height + preScalingStrokeValue,
+//     noSkew = dimOptions.skewX === 0 && dimOptions.skewY === 0;
+//   let finalDimensions;
+//   if (noSkew) {
+//     finalDimensions = new fabric.Point(
+//       dimX * dimOptions.scaleX,
+//       dimY * dimOptions.scaleY
+//     );
+//   } else {
+//     finalDimensions = fabric.util.sizeAfterTransform(dimX, dimY, dimOptions);
+//   }
+//   return finalDimensions.scalarAdd(postScalingStrokeValue);
+// }
 var EditorTextbox = /** @class */ (function (_super) {
     __extends(EditorTextbox, _super);
     function EditorTextbox(text, options) {
@@ -93,8 +128,8 @@ var EditorTextbox = /** @class */ (function (_super) {
     // }
     EditorTextbox.prototype._render = function (ctx) {
         _super.prototype._render.call(this, ctx);
-        // this._renderClippingBackground(ctx);
         this._renderClippingText(ctx);
+        this._renderClippingBackground(ctx);
     };
     EditorTextbox.prototype._renderClippingBackground = function (ctx) {
         if (this.isClipping) {
@@ -107,14 +142,29 @@ var EditorTextbox = /** @class */ (function (_super) {
             ctx.globalAlpha = this.cropOpacity;
             // const padding = this.getElementPadding();
             var padding = 0;
-            var elWidth = this.clippingPath.width;
-            var elHeight = this.clippingPath.height;
-            var imageCopyX = -this.cropX - elWidth / 2;
-            var imageCopyY = -this.cropY - elHeight / 2;
-            ctx.scale(clipPathScaleFactorX, clipPathScaleFactorY);
+            // const width = this.clippingPath.width;
+            // const height = this.clippingPath.height;
+            // @ts-ignore
+            // const elWidth = this.clippingPath.getElementWidth();
+            var elWidth = elementToDraw.naturalWidth || elementToDraw.width;
+            // @ts-ignore
+            var elHeight = elementToDraw.naturalHeight || elementToDraw.height;
+            // @ts-ignore
+            // const elHeight = this.clippingPath.getElementHeight();
+            var imageCopyX = -this.cropX - width / 2;
+            var imageCopyY = -this.cropY - height / 2;
+            // const dx = -this.cropX + this.clippingPath.width - this.width / 2;
+            // const dy = -this.cropY + this.clippingPath.height - this.height / 2;
             ctx.drawImage(elementToDraw, imageCopyX, imageCopyY, elWidth, elHeight);
             ctx.restore();
             ctx.globalAlpha = 1;
+            // ctx.save();
+            // ctx.globalAlpha = 0.5;
+            // // ctxToDraw.globalCompositeOperation = 'source-atop';
+            // ctx.scale(clipPathScaleFactorX, clipPathScaleFactorY);
+            // this.clippingPath._render(ctx);
+            // ctx.restore();
+            // ctx.globalAlpha = 1;
         }
     };
     EditorTextbox.prototype._renderClippingText = function (ctx) {
@@ -122,7 +172,6 @@ var EditorTextbox = /** @class */ (function (_super) {
         if (!this.clippingPath || this.isNotVisible()) {
             return;
         }
-        // console.log(this.clippingPath, 'this.clippingPath');
         var clipPathScaleFactorX = this.clippingPath.scaleX;
         var clipPathScaleFactorY = this.clippingPath.scaleY;
         if (!this._cacheClippingPathCanvas) {
@@ -157,103 +206,34 @@ var EditorTextbox = /** @class */ (function (_super) {
         ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
         this.clippingPath._render(ctxToDraw);
         ctxToDraw.restore();
-        // ctxToDraw.save();
-        // ctxToDraw.globalCompositeOperation = 'source-atop';
-        // ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
-        // const elementToDraw = this.clippingPath.getElement();
-        // if (!elementToDraw) {
-        //   return;
+        // if (this.isClipping) {
+        //   console.log(this.cropX, 'this.cropX')
+        //   console.log(this.cropY, 'this.cropY');
+        //   ctx.save();
+        //   ctx.globalAlpha = 0.5;
+        //   const dx = -this.cropX + this.clippingPath.width - this.width / 2;
+        //   const dy = -this.cropY + this.clippingPath.height - this.height / 2;
+        //   console.log(dx, 'dx')
+        //   console.log(dy, 'dy')
+        //   // ctx.translate(-this.cropX, -this.cropY);
+        //   ctx.scale(clipPathScaleFactorX, clipPathScaleFactorY);
+        //   this.clippingPath._render(ctx);
+        //   ctx.restore()
         // }
-        // // @ts-ignore
-        // const scaleX = this.clippingPath._filterScalingX;
-        // // @ts-ignore
-        // const scaleY = this.clippingPath._filterScalingY;
-        // const w = this.clippingPath.width;
-        // const h = this.clippingPath.height;
-        // // crop values cannot be lesser than 0.
-        // const cropX = Math.max(this.cropX, 0);
-        // const cropY = Math.max(this.cropY, 0);
-        // // const cropY = this.cropY
-        // // console.log(cropY, 'cropY');
-        // // @ts-ignore
-        // const elWidth = elementToDraw.naturalWidth || elementToDraw.width;
-        // // @ts-ignore
-        // const elHeight = elementToDraw.naturalHeight || elementToDraw.height;
-        // const sX = cropX * scaleX;
-        // const sY = cropY * scaleY;
-        // // the width height cannot exceed element width/height, starting from the crop offset.
-        // const sW = Math.min(w * scaleX, elWidth - sX);
-        // const sH = Math.min(h * scaleY, elHeight - sY);
-        // const x = -w / 2;
-        // const y = -h / 2;
-        // const maxDestW = Math.min(w, elWidth / scaleX - cropX);
-        // const maxDestH = Math.min(h, elHeight / scaleY - cropY);
-        // // console.log(sX, sY, sW, sH, x, y, maxDestW, maxDestH, 'sX, sY, sW, sH, x, y, maxDestW, maxDestH');
-        // elementToDraw &&
-        //   ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
-        // ctxToDraw.drawImage(elementToDraw, sX, sY, sW, sH, x, y, maxDestW, maxDestH);
-        // const { width } = this;
-        // const { height } = this;
-        // ctx.globalAlpha = this.cropOpacity;
-        // const padding = this.getElementPadding();
-        // const padding = 0;
-        // const elWidth = this.getElementWidth() - padding;
-        // const elHeight = this.getElementHeight() - padding;
-        // const imageCopyX = -this.cropX - w / 2;
-        // const imageCopyY = -this.cropY - (h * this.clippingPath.scaleY) / 2 - h / 2;
-        // console.log(this.height, 'this.height');
-        // const imageCopyX = -this.cropX - w / 2;
-        // const imageCopyY = -this.cropY - h / 2;
-        // console.log(this.cropY, 'this.cropY');
-        // console.log(h, 'h');
-        // console.log(this.cropY + imageCopyY, 'this.cropY + imageCopyY');
-        // canvas.width / 2 - width / 2,
-        //       canvas.height / 2 - height / 2,
-        // ctxToDraw.drawImage(
-        //   elementToDraw,
-        //   this.cropX + imageCopyX,
-        //   this.cropY + imageCopyY,
-        //   elWidth,
-        //   elHeight,
-        // );
-        ctxToDraw.restore();
-        if (this.isClipping) {
-            ctx.save();
-            ctx.globalAlpha = 0.5;
-            ctx.scale(clipPathScaleFactorX, clipPathScaleFactorY);
-            this.clippingPath._render(ctx);
-            ctx.restore();
-        }
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         this._setOpacity(ctx);
         ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
         ctx.restore();
         ctxToDraw.restore();
-        // console.log(ctx.canvas.toDataURL(), 'toDataURL');
-        // if (this.isClipping) {
-        //   ctx.save();
-        //   ctx.globalAlpha = 0.5;
-        //   ctxToDraw.scale(clipPathScaleFactorX, clipPathScaleFactorY);
-        //   this.clippingPath._render(ctx);
-        //   ctx.restore();
-        //   this.isEditing = false;
-        // }
-        // this.pattern._element = orignalElement;
-        // console.log(this.isEditing, 'isEditing');
     };
     EditorTextbox.prototype.calcTextByClipPath = function () {
         var clippingPath = this.clippingPath;
         // @ts-ignore
         var point1 = this.getPointByOrigin(this.originX, this.originY);
-        console.log(this.left, this.top, 'this.top, this.left');
-        console.log(point1, 'point1');
         var point2 = clippingPath.getPointByOrigin(clippingPath.originX, clippingPath.originY);
-        console.log(point2, 'point2');
         var cropX = (point1.x - point2.x) || 0;
         var cropY = (point1.y - point2.y) || 0;
-        console.log(cropX, 'cropX');
-        console.log(cropY, 'cropY');
         // const width = clippingPath.getScaledWidth();
         // const height = clippingPath.getScaledHeight();
         // const { tl } = clippingPath.calcACoords();
