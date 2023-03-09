@@ -217,7 +217,7 @@ function addClippingMaskInteractions(prototype: any) {
       if (
         this.__targetlessCanvasDrag
         && evt.type === 'mousemove'
-        && 
+        &&
         activeObject
       ) {
         // console.log('onMouseMove');
@@ -260,44 +260,72 @@ function addClippingMaskInteractions(prototype: any) {
     },
 
     cropModeHandlerMoveImage() {
-      if (this.isClipping) {
-        const top = this.lastTop === undefined ? this.lastEventTop : this.lastTop;
-        const left = this.lastLeft === undefined ? this.lastEventLeft : this.lastLeft;
-        const pt = new fabric.Point(left - this.left, top - this.top);
-        const point = fabric.util.transformPoint(
-          pt,
-          this.moveTransformationMatrix,
-        );
-        const width = this.clippingPath._element.naturalWidth || this.clippingPath._element.width;
-        const height = this.clippingPath._element.naturalHeight || this.clippingPath._element.height;
-        const { x, y } = point;
-        let cropX = this.cropX + x;
-        let cropY = this.cropY + y;
-        const newPoint = {
-          x,
-          y,
-        };
-        if (cropX < 0) {
-          newPoint.x = -this.cropX;
-          cropX = 0;
-        } else if (cropX + this.width > width) {
-          cropX = width - this.width;
-          newPoint.x = width - this.cropX - this.width;
-        }
-        if (cropY < 0) {
-          newPoint.y = -this.cropY;
-          cropY = 0;
-        } else if (cropY + this.height > height) {
-          cropY = height - this.height;
-          newPoint.y = height - this.cropY - this.height;
-        }
-        this.cropX = cropX;
-        this.cropY = cropY;
-        this.lastTop = this.top;
-        this.lastLeft = this.left;
-        this.top = this.lastEventTop;
-        this.left = this.lastEventLeft;
+      if (!this.isClipping) {
+        return;
       }
+      const width = this.clippingPath.getScaledWidth();
+      const height = this.clippingPath.getScaledHeight();
+      const w = this.getScaledWidth();
+      const h = this.getScaledHeight();
+      const distanceX = (width - w) / 2;
+      const distanceY = (height - h) / 2;
+      let { cropX } = this;
+      let { cropY } = this;
+      // verify bounds
+      if (cropX < -distanceX) {
+        cropX = -distanceX;
+      } else if (cropX > distanceX) {
+        cropX = distanceX;
+      }
+      console.log(distanceY, 'distanceY')
+      console.log(cropY, 'cropY')
+      if (cropY < -distanceY) {
+        cropY = -distanceY;
+      } else if (cropY > distanceY) {
+        cropY = distanceY;
+      }
+      const center = this.getCenterPoint();
+      const centerPattern = this.clippingPath.getCenterPoint();
+      const pointCrop = new Point(cropX, cropY);
+      const point = fabric.util.rotateVector(pointCrop, fabric.util.degreesToRadians(this.angle));
+      // this.clippingPath.left += (center.x - centerPattern.x) - point.x;
+      // this.clippingPath.top += (center.y - centerPattern.y) - point.y;
+      this.cropX = cropX;
+      this.cropY = cropY;
+      // this.lastTop = this.clippingPath.top;
+      // this.lastLeft = this.clippingPath.left;
+      // if (this.isClipping) {
+      //   const top = this.lastTop === undefined ? this.lastEventTop : this.lastTop;
+      //   const left = this.lastLeft === undefined ? this.lastEventLeft : this.lastLeft;
+      //   const pt = new fabric.Point(left - this.left, top - this.top);
+      //   const point = fabric.util.transformPoint(
+      //     pt,
+      //     this.moveTransformationMatrix,
+      //   );
+      //   // const width = (this.clippingPath._element.naturalWidth || this.clippingPath._element.width) * this.clippingPath.scaleX;
+      //   // const height = (this.clippingPath._element.naturalHeight || this.clippingPath._element.height) * this.clippingPath.scaleY;
+      //   const width = this.clippingPath.getScaledWidth();
+      //   const height = this.clippingPath.getScaledHeight();
+      //   const { x, y } = point;
+      //   let cropX = this.cropX + x;
+      //   let cropY = this.cropY + y;
+      //   if (cropX < 0) {
+      //     cropX = -(width - this.width) / 2;
+      //   } else if (cropX + this.width > width) {
+      //     cropX = (width - this.width) / 2;
+      //   }
+      //   if (cropY < 0) {
+      //     cropY = 0;
+      //   } else if (cropY + this.height > height) {
+      //     cropY = height - this.height;
+      //   }
+      //   this.cropX = cropX;
+      //   this.cropY = cropY;
+      //   this.lastTop = this.top;
+      //   this.lastLeft = this.left;
+      //   this.top = this.lastEventTop;
+      //   this.left = this.lastEventLeft;
+      // }
     },
 
     _drawClippingLines(ctx: CanvasRenderingContext2D) {

@@ -148,7 +148,7 @@ function createClipText1() {
       image.left = originalImage.left;
       fabricActiveObject.set('clippingPath', image)
       // @ts-ignore
-      Object.assign(fabricActiveObject, fabricActiveObject.calcTextByClipPath());
+      // Object.assign(fabricActiveObject, fabricActiveObject.calcTextByClipPath());
       canvas.remove(originalImage);
       fabricCanvas.requestRenderAll();
     })
