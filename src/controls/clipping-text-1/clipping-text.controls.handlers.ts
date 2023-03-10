@@ -81,8 +81,9 @@ function cornerTL(dim, finalMatrix, fabricObject) {
   const matrix = fabricObject.calcTransformMatrix();
   const vpt = fabricObject.getViewportTransform();
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
-  const dx = (-fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX  / 2 - fabricObject.cropX);
-  const dy = (-fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY);
+  const { clippingPath } = fabricObject;
+  const dx = (-clippingPath.width * clippingPath.scaleX  / 2 - fabricObject.cropX);
+  const dy = (-clippingPath.height * clippingPath.scaleY / 2 - fabricObject.cropY);
   const point = {
     x: dx,
     y: dy,
@@ -96,9 +97,12 @@ function cornerTR(dim, finalMatrix, fabricObject) {
   const vpt = fabricObject.getViewportTransform();
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
   const fullWidth = fabricObject.getOriginalElementWidth();
+  const { clippingPath } = fabricObject;
+  const dx = (fullWidth * clippingPath.scaleX - clippingPath.width * clippingPath.scaleX / 2 - fabricObject.cropX);
+  const dy = (-clippingPath.height * clippingPath.scaleY / 2 - fabricObject.cropY);
   const point = {
-    x: (fullWidth * fabricObject.clippingPath.scaleX - fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
-    y: (-fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+    x: dx,
+    y: dy,
   }
   return fabric.util.transformPoint(point, _finalMatrix);
 
@@ -110,9 +114,12 @@ function cornerML(dim, finalMatrix, fabricObject) {
   const vpt = fabricObject.getViewportTransform();
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
   const fullHeight = fabricObject.getOriginalElementHeight();
+  const { clippingPath } = fabricObject;
+  const dx = (-clippingPath.width * clippingPath.scaleX / 2 - fabricObject.cropX);
+  const dy = (fullHeight * clippingPath.scaleY / 2 - clippingPath.height * clippingPath.scaleY / 2 - fabricObject.cropY);
   const point = {
-    x: (-fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
-    y: (fullHeight * fabricObject.clippingPath.scaleY / 2 - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+    x: dx,
+    y: dy,
   }
   return fabric.util.transformPoint(point, _finalMatrix);
 }
@@ -124,9 +131,12 @@ function cornerMR(dim, finalMatrix, fabricObject) {
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
   const fullWidth = fabricObject.getOriginalElementWidth();
   const fullHeight = fabricObject.getOriginalElementHeight();
+  const { clippingPath } = fabricObject;
+  const dx = (fullWidth * clippingPath.scaleX - clippingPath.width * clippingPath.scaleX / 2 - fabricObject.cropX);
+  const dy = (fullHeight * clippingPath.scaleY / 2 - clippingPath.height * clippingPath.scaleY / 2 - fabricObject.cropY);
   const point = {
-    x: (fullWidth * fabricObject.clippingPath.scaleX - fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
-    y: (fullHeight * fabricObject.clippingPath.scaleY / 2 - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+    x: dx,
+    y: dy,
   }
   return fabric.util.transformPoint(point, _finalMatrix);
 }
@@ -138,9 +148,12 @@ function cornerBR(dim, finalMatrix, fabricObject) {
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
   const fullWidth = fabricObject.getOriginalElementWidth();
   const fullHeight = fabricObject.getOriginalElementHeight();
+  const { clippingPath } = fabricObject;
+  const dx = (fullWidth * clippingPath.scaleX - clippingPath.width * clippingPath.scaleX / 2 - fabricObject.cropX);
+  const dy = (fullHeight * clippingPath.scaleY - clippingPath.height * clippingPath.scaleY / 2 - fabricObject.cropY);
   const point = {
-    x: (fullWidth * fabricObject.clippingPath.scaleX - fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
-    y: (fullHeight * fabricObject.clippingPath.scaleY - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+    x: dx,
+    y: dy,
   }
   return fabric.util.transformPoint(point, _finalMatrix);
 }
@@ -151,9 +164,12 @@ function cornerBL(dim, finalMatrix, fabricObject) {
   const vpt = fabricObject.getViewportTransform();
   const _finalMatrix = fabric.util.multiplyTransformMatrices(vpt, matrix);
   const fullHeight = fabricObject.getOriginalElementHeight();
+  const { clippingPath } = fabricObject;
+  const dx = (-clippingPath.width * clippingPath.scaleX / 2 - fabricObject.cropX);
+  const dy = (fullHeight * clippingPath.scaleY - clippingPath.height * clippingPath.scaleY / 2 - fabricObject.cropY);
   const point = {
-    x: (-fabricObject.clippingPath.width * fabricObject.clippingPath.scaleX / 2 - fabricObject.cropX),
-    y: (fullHeight * fabricObject.clippingPath.scaleY - fabricObject.clippingPath.height * fabricObject.clippingPath.scaleY / 2 - fabricObject.cropY),
+    x: dx,
+    y: dy,
   }
   return fabric.util.transformPoint(point, _finalMatrix);
 }

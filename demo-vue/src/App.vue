@@ -115,12 +115,12 @@ function checkRelativePositionBetweenElementsClippingText(
 
   if (ratioWidthAndHeightClipPath >= ratioWidthAndHeightImage) {
     const scale = originalImage.scaleY / originalImage.scaleX;
-    const scaleToWidth = originalClipPath.getScaledWidth() / originalImage.width;
+    const scaleToWidth = originalClipPath.width / originalImage.width;
     originalImage.scale(scaleToWidth);
     originalImage.scaleY = scale * originalImage.scaleX;
   } else if (ratioWidthAndHeightClipPath <= ratioWidthAndHeightImage) {
     const scale = originalImage.scaleX / originalImage.scaleY;
-    const scaleToHeight = originalClipPath.getScaledHeight() / originalImage.height;
+    const scaleToHeight = originalClipPath.height / originalImage.height;
     originalImage.scale(scaleToHeight);
     originalImage.scaleX = scale * originalImage.scaleY;
   }
